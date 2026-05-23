@@ -1,3 +1,21 @@
+server:
+  port: 8080
+
 spring:
   application:
     name: ScanLinkAPI
+  datasource:
+    url: jdbc:mysql://localhost:3306/ScanLinkDb?createIfNotExists=True
+    username: root
+    password: keenetic
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    database: mysql
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        use_sql_comments: true
+        format_sql: true
+
