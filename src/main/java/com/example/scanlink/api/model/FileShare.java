@@ -16,14 +16,14 @@ public class FileShare {
    private String fileId;
 
    @Indexed
-   private User shareWithUserId;
+   private String shareWithUserId;
    private PermissionRole role;
    private LocalDateTime shareAt;
 
    public FileShare() {
    }
 
-    public FileShare(String id, String fileId, User shareWithUserId, PermissionRole role, LocalDateTime shareAt) {
+    public FileShare(String id, String fileId, String shareWithUserId, PermissionRole role, LocalDateTime shareAt) {
         this.id = id;
         this.fileId = fileId;
         this.shareWithUserId = shareWithUserId;
