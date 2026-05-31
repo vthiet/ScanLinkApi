@@ -10,6 +10,6 @@ import java.util.Optional;
 
 @RepositoryRestResource(path = "file_shares")
 public interface FileShareRespository extends MongoRepository<FileShare,String> {
-    List<FileShare> findBySharedWithUserIdOrderByShareAtDesc(String sharedWithUserId);
+    List<FileShare> findByShareWithUserIdOrderByShareAtDesc(String sharedWithUserId);
 
 }

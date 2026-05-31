@@ -13,7 +13,7 @@ public class OcrService {
 
     private Tesseract buildTesseract() {
         Tesseract tesseract = new Tesseract();
-        tesseract.setDatapath("src/main/resources");
+        tesseract.setDatapath("src/main/resources/tessdata");
         tesseract.setLanguage("vie+eng");
         return tesseract;
     }

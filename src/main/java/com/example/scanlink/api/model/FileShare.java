@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Data
-@Document(collection = "file_shares")
+@Document(collection  = "file_shares")
 public class FileShare {
     @Id
    private String id;

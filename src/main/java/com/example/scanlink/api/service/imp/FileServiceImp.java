@@ -38,7 +38,7 @@ public class FileServiceImp implements FileService {
     }
     @Override
     public List<FileHistoryResponse> getFilesByUserId(String userId) {
-        return fileRepository.findByUserIdOrderByCreatedAtDesc(userId)
+        return fileRepository.findByUserId(userId)
                 .stream()
                 .map(file -> new FileHistoryResponse(
                         file.getFileName(),

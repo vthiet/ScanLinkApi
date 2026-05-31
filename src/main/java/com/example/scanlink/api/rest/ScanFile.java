@@ -1,10 +1,12 @@
 package com.example.scanlink.api.rest;
 
 import com.example.scanlink.api.dto.FileHistoryResponse;
+import com.example.scanlink.api.dto.SharedWithMeResponse;
 import com.example.scanlink.api.dto.UploadFileRequest;
 import com.example.scanlink.api.model.FileCommon;
 import com.example.scanlink.api.service.interfaces.FileService;
 import com.example.scanlink.api.service.OcrService;
+import com.example.scanlink.api.service.interfaces.FileShareService;
 import lombok.RequiredArgsConstructor;
 import net.sourceforge.tess4j.TesseractException;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +28,8 @@ public class ScanFile {
     private final OcrService ocrService;
     private final CloudinaryService cloudinaryService;
     private final FileService fileService;
+    private final FileShareService fileShareService;
+
 
     // chưa test
     @PostMapping("/scan")
@@ -123,8 +127,21 @@ public class ScanFile {
     }
     @GetMapping("/shareWithMe")
     public ResponseEntity<?> shareWithMe(@RequestParam String userId) {
+        try {
+         List<SharedWithMeResponse> list =   fileShareService.getSharedWithMe(userId);
+            if(list.isEmpty()) return  ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Không có file nào được chia sẻ",
+                    "data", List.of()
+            ));
+            return ResponseEntity.ok(Map.of("success",true,"total",list.size(),"data",list));
 
-        return null;
+        }catch (Exception e){
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "success", false,
+                    "error", "Không có file nào được share: " + e.getMessage()
+            ));
+        }
 
     }
 }
