@@ -5,7 +5,9 @@ import com.example.scanlink.api.dto.FileHistoryResponse;
 import com.example.scanlink.api.dto.UploadFileRequest;
 import com.example.scanlink.api.model.FileCommon;
 import com.example.scanlink.api.model.enums.FileType;
+import com.example.scanlink.api.model.enums.PermissionRole;
 import com.example.scanlink.api.model.enums.ProcessingStatus;
+import com.example.scanlink.api.model.enums.Visibility;
 import com.example.scanlink.api.service.interfaces.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -43,7 +45,9 @@ public class FileServiceImp implements FileService {
                 .map(file -> new FileHistoryResponse(
                         file.getFileName(),
                         file.getFileUrl(),
-                        file.getCreatedAt()
+                        file.getCreatedAt(),
+                        PermissionRole.NONE,
+                        Visibility.PRIVATE
                 ))
                 .collect(Collectors.toList());
     }
