@@ -11,5 +11,5 @@ import java.util.List;
 public interface FileRespository extends MongoRepository<FileCommon,String> {
 
     List<FileCommon> findByUserId(String userId);
-    List<FileHistoryResponse> findByUserIdOrderByCreatedAtDesc(String userId);
+    List<FileCommon> findByUserIdOrderByCreatedAtDesc(String userId);
 }

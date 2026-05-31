@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@Document(collation = "files")
+@Document(collection  = "files")
     public class FileCommon {
     @Id
     private String id;

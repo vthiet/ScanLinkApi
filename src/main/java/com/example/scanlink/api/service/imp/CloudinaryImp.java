@@ -33,7 +33,7 @@ public class CloudinaryImp implements CloudinaryService {
     public Map uploadFile(byte[]  fileBytes, String folder) throws IOException {
         return cloudinaryClient.uploader().upload(
                 fileBytes,
-                ObjectUtils.asMap("folder", folder)
+                ObjectUtils.asMap("folder", folder,"resource_type", "raw")
         );
     }
 
