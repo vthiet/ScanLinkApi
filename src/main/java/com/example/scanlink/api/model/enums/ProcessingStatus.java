@@ -1,4 +1,4 @@
-package com.example.scanlink.api.model;
+package com.example.scanlink.api.model.enums;
 
 public enum ProcessingStatus {
     PENDING,

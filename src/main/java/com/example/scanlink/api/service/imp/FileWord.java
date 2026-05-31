@@ -1,5 +1,6 @@
-package com.example.scanlink.api.service;
+package com.example.scanlink.api.service.imp;
 
+import com.example.scanlink.api.service.interfaces.CreateFileOutput;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;

@@ -1,21 +1,26 @@
 package com.example.scanlink.api.model;
 
+
+import java.time.LocalDateTime;
+
 public class User {
     private String id;
-    private String username;
-    private String password;
-    private String identify;
+
+    // Firebase fields
+    private String uid;
     private String email;
+    private String phoneNumber;
+    private String displayName;
+    private String photoUrl;
+    private Boolean isEmailVerified = false;
+    private String providerId;
 
-
-    public User() {
-    }
-
-    public User(String username, String password, String identify, String email) {
-        this.username = username;
-        this.password = password;
-        this.identify = identify;
-        this.email = email;
-    }
+    // Custom fields
+    private String dateOfBirth;
+    private String gender;
+    private String role;
+    private Boolean isActive = true;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
 }

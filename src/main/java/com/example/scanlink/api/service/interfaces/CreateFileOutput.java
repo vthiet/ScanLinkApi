@@ -1,4 +1,4 @@
-package com.example.scanlink.api.service;
+package com.example.scanlink.api.service.interfaces;
 
 
 import java.io.File;

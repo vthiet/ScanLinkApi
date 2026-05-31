@@ -1,11 +1,10 @@
-package com.example.scanlink.api.service;
+package com.example.scanlink.api.service.imp;
 
+import com.example.scanlink.api.service.interfaces.CreateFileOutput;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Paragraph;
-
-import java.io.File;
 
 import java.io.File;
 

@@ -1,12 +1,18 @@
 package com.example.scanlink.api.model;
 
+import com.example.scanlink.api.model.enums.PermissionRole;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
+@Getter
+@Setter
+@Data
 @Document(collection = "file_shares")
 public class FileShare {
     @Id
