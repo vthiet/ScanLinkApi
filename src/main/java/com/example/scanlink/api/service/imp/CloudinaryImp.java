@@ -1,8 +1,7 @@
-package com.example.scanlink.api.service;
+package com.example.scanlink.api.service.imp;
 
-import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-import com.example.scanlink.api.service.CloudinaryService;
+import com.example.scanlink.api.service.interfaces.CloudinaryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,9 +30,9 @@ public class CloudinaryImp implements CloudinaryService {
     }
 
     @Override
-    public Map uploadFile(MultipartFile file, String folder) throws IOException {
+    public Map uploadFile(byte[]  fileBytes, String folder) throws IOException {
         return cloudinaryClient.uploader().upload(
-                file.getBytes(),
+                fileBytes,
                 ObjectUtils.asMap("folder", folder)
         );
     }

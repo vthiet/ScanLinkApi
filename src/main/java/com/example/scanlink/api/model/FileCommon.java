@@ -1,13 +1,19 @@
 package com.example.scanlink.api.model;
 
+import com.example.scanlink.api.model.enums.FileType;
+import com.example.scanlink.api.model.enums.ProcessingStatus;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
 @Document(collation = "files")
-    public class File {
+    public class FileCommon {
     @Id
     private String id;
 
@@ -24,10 +30,10 @@ import java.time.LocalDateTime;
     @Indexed
     private LocalDateTime createdAt;
 
-    public File() {
+    public FileCommon() {
     }
 
-    public File(String thumbnailUrl, String id, String fileName, Long size, String userId, String guestId, String fileUrl, String cloudinaryPublicId, FileType type, ProcessingStatus status, LocalDateTime createdAt) {
+    public FileCommon(String thumbnailUrl, String id, String fileName, Long size, String userId, String guestId, String fileUrl, String cloudinaryPublicId, FileType type, ProcessingStatus status, LocalDateTime createdAt) {
         this.thumbnailUrl = thumbnailUrl;
         this.id = id;
         this.fileName = fileName;
@@ -40,4 +46,5 @@ import java.time.LocalDateTime;
         this.status = status;
         this.createdAt = createdAt;
     }
+
 }

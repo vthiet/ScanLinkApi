@@ -1,4 +1,4 @@
-package com.example.scanlink.api.service;
+package com.example.scanlink.api.service.interfaces;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,7 +19,7 @@ public interface CloudinaryService {
     /**
      * Upload vào folder chỉ định
      */
-    Map uploadFile(MultipartFile file, String folder) throws IOException;
+    Map uploadFile(byte[]  fileBytes, String folder) throws IOException;
 
     /**
      * Xóa file theo publicId
