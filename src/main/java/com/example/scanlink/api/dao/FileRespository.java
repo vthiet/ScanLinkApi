@@ -12,4 +12,5 @@ public interface FileRespository extends MongoRepository<FileCommon,String> {
 
     List<FileCommon> findByUserId(String userId);
     List<FileCommon> findByUserIdOrderByCreatedAtDesc(String userId);
+    FileCommon findbyId(String id);
 }

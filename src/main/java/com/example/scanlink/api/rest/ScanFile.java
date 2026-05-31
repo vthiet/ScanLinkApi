@@ -1,9 +1,10 @@
 package com.example.scanlink.api.rest;
 
-import com.example.scanlink.api.dto.FileHistoryResponse;
-import com.example.scanlink.api.dto.SharedWithMeResponse;
-import com.example.scanlink.api.dto.UploadFileRequest;
+import com.example.scanlink.api.dto.*;
 import com.example.scanlink.api.model.FileCommon;
+import com.example.scanlink.api.model.FileShare;
+import com.example.scanlink.api.model.enums.PermissionRole;
+import com.example.scanlink.api.model.enums.Visibility;
 import com.example.scanlink.api.service.interfaces.FileService;
 import com.example.scanlink.api.service.OcrService;
 import com.example.scanlink.api.service.interfaces.FileShareService;
@@ -143,5 +144,36 @@ public class ScanFile {
             ));
         }
 
+    }
+
+    @PostMapping("/share")
+    public ResponseEntity<?> shareFile(@RequestBody ShareFileRequest request) {
+        try {
+            FileShare result = fileShareService.shareFile(request);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "shareId", result.getId(),
+                    "message", request.getVisibility() == Visibility.PUBLIC
+                            ? "Đã share public thành công"
+                            : "Đã share cho user thành công"));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "success", false,
+                    "error", e.getMessage()
+            ));
+        }
+    }
+    @PutMapping("/share/permission")
+    public ResponseEntity<?> updatePermission(@RequestBody UpdatePermissionRequest permissionRole) {
+        try {
+            FileShare result = fileShareService.updatePermission(permissionRole);
+            return ResponseEntity.ok(Map.of(
+                    "success",true,"message","Đã cậpn nhật quyền thành công" +result.getRole()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "success",false,
+                    "error",e.getMessage()));
+        }
     }
 }
