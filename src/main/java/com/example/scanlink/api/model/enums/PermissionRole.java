@@ -4,6 +4,6 @@ public enum PermissionRole
 {
     VIEW,
     EDIT,
-    OWNER,
+    All,
     NONE
 }

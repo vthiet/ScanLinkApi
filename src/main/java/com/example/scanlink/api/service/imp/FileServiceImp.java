@@ -26,6 +26,7 @@ public class FileServiceImp implements FileService {
 
     @Override
     public FileCommon saveFile(UploadFileRequest request) {
+
         FileCommon file = new FileCommon();
         file.setFileName(request.getFileName());
         file.setSize(request.getSize());
@@ -43,6 +44,7 @@ public class FileServiceImp implements FileService {
         return fileRepository.findByUserId(userId)
                 .stream()
                 .map(file -> new FileHistoryResponse(
+                        file.getId(),
                         file.getFileName(),
                         file.getFileUrl(),
                         file.getCreatedAt(),
