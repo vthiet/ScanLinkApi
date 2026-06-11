@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 public class FileHistoryResponse {
+    private String fileId;
     private String fileName;
     private String fileUrl;
     private LocalDateTime createdAt;

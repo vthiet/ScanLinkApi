@@ -1,6 +1,7 @@
 package com.example.scanlink.api.rest;
 
 import com.example.scanlink.api.dto.*;
+import com.example.scanlink.api.handler.NotFoundException;
 import com.example.scanlink.api.model.FileCommon;
 import com.example.scanlink.api.model.FileShare;
 import com.example.scanlink.api.model.enums.PermissionRole;
@@ -21,6 +22,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @RestController
@@ -35,11 +37,11 @@ public class ScanFile {
     // chưa test
     @PostMapping("/scan")
     public ResponseEntity<?> scan(@RequestParam("file") MultipartFile file) {
-        if (file.isEmpty()) return ResponseEntity.badRequest().body("File không được để trống");
+        if (file.isEmpty()) throw new IllegalArgumentException("File cannot be empty");
 
         String contentType = file.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
-            return ResponseEntity.badRequest().body("Chỉ chấp nhận file ảnh");
+           throw new IllegalArgumentException("File type is not image");
         }
 
         File tempImage = null;
@@ -84,71 +86,50 @@ public class ScanFile {
             if (pdfFile != null && pdfFile.exists()) pdfFile.delete();
         }
     }
+    // Đã test postman
     @PostMapping("/upload")
     public ResponseEntity<?> upload(@RequestBody UploadFileRequest request) {
-        try {
             FileCommon savedFile = fileService.saveFile(request);
+
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "fileId", savedFile.getId(),
                     "message", "Lưu file thành công"
             ));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of(
-                    "success", false,
-                    "error", "Lưu file thất bại: " + e.getMessage()
-            ));
-        }
+
     }
+    // đã test postman
     @GetMapping("/history")
     public ResponseEntity<?> getHistory(@RequestParam String userId) {
-        try {
-            List<FileHistoryResponse> files = fileService.getFilesByUserId(userId);
-
-            if (files.isEmpty()) {
-                return ResponseEntity.ok(Map.of(
-                        "success", true,
-                        "message", "Chưa có lịch sử scan",
-                        "data", List.of()
-                ));
-            }
+        if(userId == null) throw new IllegalArgumentException("userid Cannot empty");
+        List<FileHistoryResponse> files = fileService.getFilesByUserId(userId);
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "total", files.size(),
-                    "data", files
+                    "data", files.stream()  .map(f -> Map.of(
+                                    "fileId", f.getFileId(),
+                                    "fileName", f.getFileName(),
+                                    "fileUrl",f.getFileUrl(),
+                                        "createdAt",f.getCreatedAt(),
+                                    "permission", f.getPermissionRole(),
+                                        "visibility",f.getVisibility()
+                            ))
+                            .collect(Collectors.toList())
             ));
 
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of(
-                    "success", false,
-                    "error", "Lỗi lấy lịch sử: " + e.getMessage()
-            ));
-        }
     }
+    // chưa test được thiếu Tìm kiếm thông tin services
     @GetMapping("/shareWithMe")
     public ResponseEntity<?> shareWithMe(@RequestParam String userId) {
-        try {
          List<SharedWithMeResponse> list =   fileShareService.getSharedWithMe(userId);
-            if(list.isEmpty()) return  ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "message", "Không có file nào được chia sẻ",
-                    "data", List.of()
-            ));
-            return ResponseEntity.ok(Map.of("success",true,"total",list.size(),"data",list));
-
-        }catch (Exception e){
-            return ResponseEntity.internalServerError().body(Map.of(
-                    "success", false,
-                    "error", "Không có file nào được share: " + e.getMessage()
-            ));
-        }
+         if(list.isEmpty()) throw new NotFoundException("Không có file nào được share");
+         return ResponseEntity.ok(Map.of("success",true,"total",list.size(),"data",list));
 
     }
 
     @PostMapping("/share")
     public ResponseEntity<?> shareFile(@RequestBody ShareFileRequest request) {
-        try {
             FileShare result = fileShareService.shareFile(request);
             return ResponseEntity.ok(Map.of(
                     "success", true,
@@ -156,24 +137,22 @@ public class ScanFile {
                     "message", request.getVisibility() == Visibility.PUBLIC
                             ? "Đã share public thành công"
                             : "Đã share cho user thành công"));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of(
-                    "success", false,
-                    "error", e.getMessage()
-            ));
-        }
+
     }
     @PutMapping("/share/permission")
     public ResponseEntity<?> updatePermission(@RequestBody UpdatePermissionRequest permissionRole) {
-        try {
             FileShare result = fileShareService.updatePermission(permissionRole);
             return ResponseEntity.ok(Map.of(
-                    "success",true,"message","Đã cậpn nhật quyền thành công" +result.getRole()
+                    "success",true,"message","Đã cập nhật quyền "+result.getRole()+" thành công"
             ));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of(
-                    "success",false,
-                    "error",e.getMessage()));
-        }
+
+    }
+    @PutMapping("/share/visibility")
+    public ResponseEntity<?> updateVisibility(@RequestBody UpdateVisibilityRequest visibilityRequest) {
+        FileShare result = fileShareService.updateVisibility(visibilityRequest);
+        return ResponseEntity.ok(Map.of(
+                "success",true,"message","Đã cập nhật quyền "+result.getRole()+" thành công"
+        ));
+
     }
 }
