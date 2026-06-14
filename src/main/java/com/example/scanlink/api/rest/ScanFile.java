@@ -34,58 +34,32 @@ public class ScanFile {
     private final FileShareService fileShareService;
 
 
-    // chưa test
-    @PostMapping("/scan")
-    public ResponseEntity<?> scan(@RequestParam("file") MultipartFile file) {
-        if (file.isEmpty()) throw new IllegalArgumentException("File cannot be empty");
+// chưa test lỗi Authorized của Firebase
+    @PostMapping("/getLinkCloudinary")
+    public ResponseEntity<?> getLinkCloudinary(
+            @RequestParam("file") MultipartFile file) throws IOException {
 
-        String contentType = file.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-           throw new IllegalArgumentException("File type is not image");
-        }
+            if (file.isEmpty()) {
+                throw new IllegalArgumentException("File cannot be empty");
+            }
+            Map uploadResult = cloudinaryService.uploadFile(file.getBytes(), "scanlink/uploads");
 
-        File tempImage = null;
-        File pdfFile = null;
-        try {
-            // Tạo file ảnh tạm
-            String originalName = file.getOriginalFilename();
-            String suffix = (originalName != null && originalName.contains("."))
-                    ? originalName.substring(originalName.lastIndexOf(".")) : ".png";
-            tempImage = File.createTempFile("ocr_", suffix);
-            file.transferTo(tempImage);
+            return ResponseEntity.ok(
+                    Map.of(
+                            "success", true,
+                            "fileName", file.getOriginalFilename(),
+                            "publicId", uploadResult.get("public_id"),
+                            "url", uploadResult.get("url"),
+                            "secureUrl", uploadResult.get("secure_url"),
+                            "resourceType", uploadResult.get("resource_type"),
+                            "format", uploadResult.get("format"),
+                            "bytes", uploadResult.get("bytes")
+                    )
+            );
 
-            // 1. OCR lấy text
-            String extractedText = ocrService.extractText(tempImage);
 
-            // 2. Tạo searchable PDF
-            pdfFile = ocrService.createSearchablePdf(tempImage);
-
-            // 3. Upload PDF lên Cloudinary
-            byte[] pdfBytes = Files.readAllBytes(pdfFile.toPath());
-
-            Map cloudinaryResult = cloudinaryService.uploadFile(pdfBytes, "scanlink/pdfs");
-
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "text", extractedText,
-                    "pdfUrl", cloudinaryResult.get("secure_url"),
-                    "publicId", cloudinaryResult.get("public_id"),
-                    "fileName", file.getOriginalFilename(),
-                    "size", file.getSize()
-            ));
-
-        } catch (TesseractException e) {
-            return ResponseEntity.internalServerError().body(Map.of(
-                    "success", false, "error", "OCR thất bại: " + e.getMessage()));
-        } catch (IOException e) {
-            return ResponseEntity.internalServerError().body(Map.of(
-                    "success", false, "error", "Lỗi file: " + e.getMessage()));
-        } finally {
-            // Xóa cả 2 file tạm
-            if (tempImage != null && tempImage.exists()) tempImage.delete();
-            if (pdfFile != null && pdfFile.exists()) pdfFile.delete();
-        }
     }
+
     // Đã test postman
     @PostMapping("/upload")
     public ResponseEntity<?> upload(@RequestBody UploadFileRequest request) {
