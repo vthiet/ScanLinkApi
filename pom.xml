@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.example</groupId>
-    <artifactId>ScanLinkAPI</artifactId>
+    <artifactId>ScanLinkApi</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>ScanLinkAPI</name>
-    <description>ScanLinkAPI</description>
+    <name>ScanLinkApi</name>
+    <description>ScanLinkApi</description>
     <url/>
     <licenses>
         <license/>
