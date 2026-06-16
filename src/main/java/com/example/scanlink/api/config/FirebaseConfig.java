@@ -11,32 +11,36 @@ import org.springframework.context.annotation.Configuration;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 @Configuration
 public class FirebaseConfig {
 
-    @Value("${app.firebase.service-account-path:}")
-    private String serviceAccountPath;
-
     @PostConstruct
-    public void init() throws IOException {
-        if (!FirebaseApp.getApps().isEmpty()) {
-            return;
-        }
+    public void init() {
+        try {
+            if (FirebaseApp.getApps().isEmpty()) {
 
-        if (serviceAccountPath == null || serviceAccountPath.isBlank()) {
-            FirebaseOptions options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.getApplicationDefault())
-                    .build();
-            FirebaseApp.initializeApp(options);
-            return;
-        }
+                InputStream serviceAccount = getClass().getClassLoader()
+                        .getResourceAsStream("scanlink-firebase-adminsdk.json");
 
-        try (FileInputStream serviceAccount = new FileInputStream(serviceAccountPath)) {
-            FirebaseOptions options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                    .build();
-            FirebaseApp.initializeApp(options);
+                if (serviceAccount == null) {
+                    throw new RuntimeException("Không tìm thấy file scanlink-firebase-adminsdk.json trong resources!");
+                }
+
+                // Cấu hình thông tin xác thực
+                FirebaseOptions options = FirebaseOptions.builder()
+                        .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                        .build();
+
+                // Khởi tạo Firebase
+                FirebaseApp.initializeApp(options);
+
+                System.out.println("Firebase Admin SDK đã được khởi tạo thành công!");
+            }
+        } catch (Exception e) {
+            System.err.println("Lỗi khi khởi tạo Firebase: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
