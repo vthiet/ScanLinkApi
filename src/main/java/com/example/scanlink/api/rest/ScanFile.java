@@ -32,72 +32,55 @@ public class ScanFile {
 
     // Đã test postman
     @PostMapping("/documents")
-    public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file,
+    public ApiResponse<?> upload(@RequestParam("file") MultipartFile file,
                                     Authentication authentication,
                                     @RequestParam String type) throws IOException {
         FirebaseUserPrincipal principal = (FirebaseUserPrincipal) authentication.getPrincipal();
         String userId = principal.uid();
         FileCommon saved = fileService.uploadAndSave(file, userId, type);
-        return ResponseEntity.ok(Map.of("success", true, "fileId", saved.getId()));
+
+        return ApiResponse.success(saved);
     }
 
     // đã test postman
     @GetMapping("/documents")
-    public ResponseEntity<?> getHistory(Authentication authentication) {
+    public ApiResponse<?> getHistory(Authentication authentication) {
         FirebaseUserPrincipal principal = (FirebaseUserPrincipal) authentication.getPrincipal();
         String userId = principal.uid();
         if(userId == null) throw new IllegalArgumentException("userid Cannot empty");
         List<FileHistoryResponse> files = fileService.getFilesByUserId(userId);
-
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "total", files.size(),
-                    "data", files.stream()  .map(f -> Map.of(
-                                    "fileId", f.getFileId(),
-                                    "fileName", f.getFileName(),
-                                    "fileUrl",f.getFileUrl(),
-                                        "createdAt",f.getCreatedAt(),
-                                    "permission", f.getPermissionRole(),
-                                        "visibility",f.getVisibility()
-                            ))
-                            .collect(Collectors.toList())
-            ));
-
-
+        return ApiResponse.success(files);
     }
 
     // soft delete
     @GetMapping("/documents/{id}")
-    public ResponseEntity<?> getDocumentById(Authentication authentication,@PathVariable String id) {
+    public ApiResponse<?> getDocumentById(Authentication authentication,@PathVariable String id) {
         FirebaseUserPrincipal principal = (FirebaseUserPrincipal) authentication.getPrincipal();
-        fileService.deleteByIdAndUserId(id,principal.uid());
-        return ResponseEntity.ok(Map.of("status","success"));
+       FileCommon file = fileService.findByIdAndUserId(id,principal.uid());
+        return ApiResponse.success(file);
 
     }
+    // soft delete
     @DeleteMapping("/documents/{id}")
-    public ResponseEntity<?> deleteDocumentById(Authentication authentication,@PathVariable String id) {
+    public ApiResponse<?> deleteDocumentById(Authentication authentication,@PathVariable String id) {
         FirebaseUserPrincipal principal = (FirebaseUserPrincipal) authentication.getPrincipal();
        fileService.deleteByIdAndUserId(id,principal.uid());
-        return ResponseEntity.ok(Map.of(
-                "status", "success",
-                "message", "Xóa tài liệu thành công",
-                "data", null
-        ));
+        return ApiResponse.success(null);
     }
     @PostMapping("/shares/public")
-    public ResponseEntity<?> getPublicShares(Authentication authentication, SharePublicRequest sharePublicRequest) {
+    public ApiResponse<?> getPublicShares(Authentication authentication, SharePublicRequest sharePublicRequest) {
         FirebaseUserPrincipal principal = (FirebaseUserPrincipal) authentication.getPrincipal();
        SharePublicResponse res= fileShareService.createSharePublic(principal.uid(), sharePublicRequest);
 
-        return ResponseEntity.ok(Map.of("status","success","message","Tạo liên kết thành công","data",res));
+        return ApiResponse.success(res);
     }
 
     @PostMapping("/shares/private")
-    public ResponseEntity<?> getPrivateShares(Authentication authentication, SharePrivateRequest sharePrivateRequest) {
+    public ApiResponse<?> getPrivateShares(Authentication authentication, SharePrivateRequest sharePrivateRequest) {
         FirebaseUserPrincipal principal = (FirebaseUserPrincipal) authentication.getPrincipal();
         SharePrivateResponse res= fileShareService.createSharePrivate(principal.uid(), sharePrivateRequest);
 
-        return ResponseEntity.ok(Map.of("status","success","message","Phân quyền thành công","data",res));
+        return ApiResponse.success(res);
     }
 
 //    @GetMapping("/shares/public/{pwd}")
@@ -111,12 +94,12 @@ public class ScanFile {
 
     // chưa test được thiếu Tìm kiếm thông tin services
     @GetMapping("/shareWithMe")
-    public ResponseEntity<?> shareWithMe(Authentication authentication) {
+    public ApiResponse<?> shareWithMe(Authentication authentication) {
         FirebaseUserPrincipal principal = (FirebaseUserPrincipal) authentication.getPrincipal();
 
         List<SharedWithMeResponse> list =   fileShareService.getSharedWithMe(principal.uid());
          if(list.isEmpty()) throw new NotFoundException("Không có file nào được share");
-         return ResponseEntity.ok(Map.of("success",true,"total",list.size(),"data",list));
+         return ApiResponse.success(list);
 
     }
 
