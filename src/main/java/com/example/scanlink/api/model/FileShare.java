@@ -24,18 +24,22 @@ public class FileShare {
    @Indexed
    private String shareWithUserId;
    private PermissionRole role;
-   private Visibility  visibility;
+   private boolean hasPassword;
+   private String hashToken;
+   private LocalDateTime expiryDate;
    private LocalDateTime shareAt;
 
    public FileShare() {
    }
 
-    public FileShare(String id, String fileId, String shareWithUserId, PermissionRole role, Visibility visibility, LocalDateTime shareAt) {
+    public FileShare(String id, String fileId, String shareWithUserId, PermissionRole role, LocalDateTime shareAt) {
         this.id = id;
         this.fileId = fileId;
         this.shareWithUserId = shareWithUserId;
         this.role = role;
-        this.visibility = visibility;
         this.shareAt = shareAt;
     }
+
+
+
 }

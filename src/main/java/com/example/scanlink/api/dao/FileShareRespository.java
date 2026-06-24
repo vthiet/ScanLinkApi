@@ -11,5 +11,5 @@ import java.util.Optional;
 @RepositoryRestResource(path = "file_shares")
 public interface FileShareRespository extends MongoRepository<FileShare,String> {
     List<FileShare> findByShareWithUserIdOrderByShareAtDesc(String sharedWithUserId);
-
+    FileShare findByFileId(String id);
 }
