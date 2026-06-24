@@ -1,92 +1,92 @@
 #!/bin/bash
 
+# Exit immediately if a command exits with a non-zero status
 set -e
 
 REPO_URL="https://github.com/vthiet/ScanLinkApi.git"
 BRANCH="feat/auth"
 
-PROJECT_DIR="$HOME/deploy/ScanLinkApi"
-
-APP_NAME="scanlink-api"
-HOST_PORT="8080"
-CONTAINER_PORT="8080"
+# Dynamically locate the deploy directory (where deploy.sh is located)
+# This will work whether it's placed in /deploy/ or $HOME/deploy/
+DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$DEPLOY_DIR/ScanLinkApi"
 
 echo "========================================="
-echo "Deploying $APP_NAME"
+echo "Deploying ScanLinkApi with Nginx proxy"
 echo "Branch: $BRANCH"
-echo "Project: $PROJECT_DIR"
+echo "Deploy Directory: $DEPLOY_DIR"
+echo "Project Directory: $PROJECT_DIR"
 echo "========================================="
 
+# 1. Update or clone the repository
 if [ ! -d "$PROJECT_DIR/.git" ]; then
-echo "[1/6] Cloning repository..."
-
-
-git clone \
-    --branch "$BRANCH" \
-    "$REPO_URL" \
-    "$PROJECT_DIR"
-
+    echo "[1/5] Cloning repository..."
+    git clone \
+        --branch "$BRANCH" \
+        "$REPO_URL" \
+        "$PROJECT_DIR"
 else
-echo "[1/6] Updating repository..."
-
-cd "$PROJECT_DIR"
-
-git fetch origin
-git checkout "$BRANCH"
-git reset --hard "origin/$BRANCH"
-
+    echo "[1/5] Updating repository..."
+    cd "$PROJECT_DIR"
+    git fetch origin
+    git checkout "$BRANCH"
+    git reset --hard "origin/$BRANCH"
 fi
 
-cd "$PROJECT_DIR"
+# 2. Copy Docker Compose and Nginx configuration files to the deploy directory
+echo "[2/5] Copying deployment configurations..."
+cp "$PROJECT_DIR/docker-compose.yml" "$DEPLOY_DIR/docker-compose.yml"
+mkdir -p "$DEPLOY_DIR/nginx"
+cp "$PROJECT_DIR/nginx/default.conf" "$DEPLOY_DIR/nginx/default.conf"
 
-echo "[2/6] Building Docker image..."
+# 3. Start services using Docker Compose
+echo "[3/5] Starting services with Docker Compose..."
+cd "$DEPLOY_DIR"
+# Force build clean image
+docker compose down || true
+docker compose up -d --build
 
-docker build --pull -t "$APP_NAME" .
-
-echo "[3/6] Removing old container if exists..."
-
-docker rm -f "$APP_NAME" 2>/dev/null || true
-
-echo "[4/6] Starting new container..."
-
-docker run -d 
---name "$APP_NAME" 
--p "$HOST_PORT:$CONTAINER_PORT" 
---restart unless-stopped 
-"$APP_NAME"
-
-echo "[5/6] Waiting for application startup..."
-
+# 4. Wait for services to startup
+echo "[4/5] Waiting for application startup..."
 sleep 15
 
-echo "[6/6] Checking container status..."
+# 5. Check container status
+echo "[5/5] Checking container status..."
+cd "$DEPLOY_DIR"
 
-if docker ps --format '{{.Names}}' | grep -q "^${APP_NAME}$"; then
-echo ""
-echo "========================================="
-echo "Deployment successful!"
-echo "Application is running."
-echo "========================================="
+API_RUNNING=false
+NGINX_RUNNING=false
 
+if docker ps --format '{{.Names}}' | grep -q "^scanlink-api$"; then
+    API_RUNNING=true
+fi
 
-docker ps | grep "$APP_NAME"
+if docker ps --format '{{.Names}}' | grep -q "^nginx$"; then
+    NGINX_RUNNING=true
+fi
 
-
+if [ "$API_RUNNING" = true ] && [ "$NGINX_RUNNING" = true ]; then
+    echo ""
+    echo "========================================="
+    echo "Deployment successful!"
+    echo "Both scanlink-api and nginx are running."
+    echo "========================================="
+    docker compose ps
 else
-echo ""
-echo "========================================="
-echo "Deployment failed!"
-echo "Container is not running."
-echo "========================================="
-
-
-docker logs "$APP_NAME"
-
-exit 1
-
+    echo ""
+    echo "========================================="
+    echo "Deployment failed!"
+    echo "One or more containers are not running."
+    echo "scanlink-api: $([ "$API_RUNNING" = true ] && echo "RUNNING" || echo "STOPPED")"
+    echo "nginx:        $([ "$NGINX_RUNNING" = true ] && echo "RUNNING" || echo "STOPPED")"
+    echo "========================================="
+    echo ">>> scanlink-api logs:"
+    docker compose logs scanlink-api || true
+    echo ">>> nginx logs:"
+    docker compose logs nginx || true
+    exit 1
 fi
 
 echo ""
 echo "Cleaning unused images..."
-
 docker image prune -f
