@@ -2,6 +2,7 @@ package com.example.scanlink.api.model;
 
 import com.example.scanlink.api.model.enums.FileType;
 import com.example.scanlink.api.model.enums.ProcessingStatus;
+import com.example.scanlink.api.model.enums.Visibility;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
@@ -29,11 +30,14 @@ import java.time.LocalDateTime;
     private ProcessingStatus status;
     @Indexed
     private LocalDateTime createdAt;
+    private Visibility  visibility;
+    private Boolean isDeleted = false;
+    private LocalDateTime deletedAt;
 
     public FileCommon() {
     }
 
-    public FileCommon(String thumbnailUrl, String id, String fileName, Long size, String userId, String guestId, String fileUrl, String cloudinaryPublicId, FileType type, ProcessingStatus status, LocalDateTime createdAt) {
+    public FileCommon(String thumbnailUrl, String id, String fileName, Long size, String userId, String guestId, String fileUrl, String cloudinaryPublicId, FileType type, ProcessingStatus status, LocalDateTime createdAt, Visibility visibility) {
         this.thumbnailUrl = thumbnailUrl;
         this.id = id;
         this.fileName = fileName;
@@ -45,6 +49,7 @@ import java.time.LocalDateTime;
         this.type = type;
         this.status = status;
         this.createdAt = createdAt;
+        this.visibility = visibility;
     }
 
 }
