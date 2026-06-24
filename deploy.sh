@@ -5,7 +5,7 @@ set -e
 REPO_URL="https://github.com/vthiet/ScanLinkApi.git"
 BRANCH="feat/auth"
 
-PROJECT_DIR="$HOME/deploy"
+PROJECT_DIR="$HOME/deploy/ScanLinkApi"
 
 APP_NAME="scanlink-api"
 HOST_PORT="8080"
@@ -17,30 +17,23 @@ echo "Branch: $BRANCH"
 echo "Project: $PROJECT_DIR"
 echo "========================================="
 
-# Clone lần đầu hoặc cập nhật source
-
 if [ ! -d "$PROJECT_DIR/.git" ]; then
 echo "[1/6] Cloning repository..."
 
-```
+
 git clone \
     --branch "$BRANCH" \
     "$REPO_URL" \
     "$PROJECT_DIR"
-```
 
 else
 echo "[1/6] Updating repository..."
 
-```
 cd "$PROJECT_DIR"
 
 git fetch origin
-
 git checkout "$BRANCH"
-
 git reset --hard "origin/$BRANCH"
-```
 
 fi
 
@@ -75,9 +68,9 @@ echo "Deployment successful!"
 echo "Application is running."
 echo "========================================="
 
-```
+
 docker ps | grep "$APP_NAME"
-```
+
 
 else
 echo ""
@@ -86,11 +79,10 @@ echo "Deployment failed!"
 echo "Container is not running."
 echo "========================================="
 
-```
+
 docker logs "$APP_NAME"
 
 exit 1
-```
 
 fi
 
