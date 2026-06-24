@@ -1,6 +1,6 @@
 package com.example.scanlink.api.entity;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;

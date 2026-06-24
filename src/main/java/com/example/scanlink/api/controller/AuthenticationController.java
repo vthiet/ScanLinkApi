@@ -5,9 +5,11 @@ import com.example.scanlink.api.entity.UserEntity;
 import com.example.scanlink.api.service.IUserService;
 import com.google.firebase.auth.FirebaseToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -53,7 +55,7 @@ public class AuthenticationController {
                         .getCredentials();
 
         UserEntity userEntity = userService.findById(token.getUid())
-                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tài khoản không tồn tại"));
 
         return ResponseEntity.ok(new ApiResponse<>("success", "Đăng nhập thành công", userEntity));
     }
