@@ -14,3 +14,4 @@ README.md
 .env.*
 
 firebase-service-account.json
+scanlink-firebase-service-account.json
