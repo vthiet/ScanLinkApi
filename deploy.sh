@@ -42,6 +42,17 @@ cp "$PROJECT_DIR/nginx/default.conf" "$DEPLOY_DIR/nginx/default.conf"
 # 3. Start services using Docker Compose
 echo "[3/5] Starting services with Docker Compose..."
 cd "$DEPLOY_DIR"
+
+# Stop and remove any standalone containers if they exist to avoid conflicts with docker-compose
+if [ "$(docker ps -aq -f name=^/scanlink-api$)" ]; then
+    echo "Found standalone 'scanlink-api' container. Stopping and removing it to prevent name conflict..."
+    docker rm -f scanlink-api || true
+fi
+if [ "$(docker ps -aq -f name=^/nginx$)" ]; then
+    echo "Found standalone 'nginx' container. Stopping and removing it to prevent name conflict..."
+    docker rm -f nginx || true
+fi
+
 # Force build clean image
 docker compose down || true
 docker compose up -d --build
