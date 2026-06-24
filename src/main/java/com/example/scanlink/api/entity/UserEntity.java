@@ -2,42 +2,31 @@ package com.example.scanlink.api.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "users")
-
-@Setter
-@Getter
+@Document(collection = "users")
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class UserEntity {
-
     @Id
-    @Column(name = "uid", length = 128, nullable = false, updatable = false)
-    private String uid; // Firebase UID
+    private String uid;
+    private String email;
+    private String displayName;
+    private String photoUrl;
 
-    @Column(name = "date_of_birth", length = 20)
+    private String role;
+    private boolean isActive;
     private String dateOfBirth;
-
-    @Column(name = "gender", length = 10)
     private String gender;
 
-    @Column(name = "role", nullable = false, length = 20)
-    private String role = "USER";
-
-    @Column(name = "is_active", nullable = false)
-    private boolean isActive = true;
-
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
+    @CreatedDate
     private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
+    @LastModifiedDate
     private LocalDateTime updatedAt;
 }

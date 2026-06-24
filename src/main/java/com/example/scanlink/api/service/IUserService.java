@@ -1,11 +1,12 @@
 package com.example.scanlink.api.service;
 
-import com.example.scanlink.api.dto.request.RegisterRequestDto;
 import com.example.scanlink.api.entity.UserEntity;
-import com.google.firebase.auth.FirebaseAuthException;
+
+import java.util.Optional;
 
 public interface IUserService {
 
-    public UserEntity syncFirebaseUser(String authorizationHeader, RegisterRequestDto dto) throws FirebaseAuthException;
+    Optional<UserEntity> findById(String uid);
 
+    UserEntity save(UserEntity userEntity);
 }

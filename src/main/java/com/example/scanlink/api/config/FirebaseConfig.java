@@ -5,41 +5,38 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 
+@Slf4j
 @Configuration
 public class FirebaseConfig {
 
     @PostConstruct
-    public void init() {
+    public void initialize() {
         try {
             if (FirebaseApp.getApps().isEmpty()) {
 
                 InputStream serviceAccount = getClass().getClassLoader()
-                        .getResourceAsStream("scanlink-firebase-adminsdk.json");
+                        .getResourceAsStream("scanlink-firebase-service-account.json");
 
                 if (serviceAccount == null) {
-                    throw new RuntimeException("Không tìm thấy file scanlink-firebase-adminsdk.json trong resources!");
+                    throw new RuntimeException("Không tìm thấy file scanlink-firebase-service-account.json trong resources!");
                 }
 
-                // Cấu hình thông tin xác thực
                 FirebaseOptions options = FirebaseOptions.builder()
                         .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                         .build();
 
-                // Khởi tạo Firebase
                 FirebaseApp.initializeApp(options);
 
-                System.out.println("Firebase Admin SDK đã được khởi tạo thành công!");
+                System.out.println(">> [Firebase] Kết nối thành công bằng Service Account!");
             }
         } catch (Exception e) {
-            System.err.println("Lỗi khi khởi tạo Firebase: " + e.getMessage());
+            System.err.println(">> [Firebase] Lỗi khởi tạo: " + e.getMessage());
             e.printStackTrace();
         }
     }
