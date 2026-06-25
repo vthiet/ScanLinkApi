@@ -1,15 +1,26 @@
 package com.example.scanlink.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Data;
+
+@Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse <T>{
     private int code;
     private String message;
     private T result;
 
-    private ApiResponse(int code, String message, T result){
+    public ApiResponse(int code, String message, T result){
         this.code = code;
         this.message = message;
         this.result = result;
     }
+
+    public ApiResponse(int code, String message) {
+        this.code = code;
+        this.message = message;
+    }
+
     public static <T> ApiResponse<T> success(T result) {
         return new ApiResponse<>(200, "Thành công", result);
     }

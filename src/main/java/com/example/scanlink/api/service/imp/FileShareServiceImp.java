@@ -3,6 +3,8 @@ package com.example.scanlink.api.service.imp;
 import com.example.scanlink.api.dao.FileRespository;
 import com.example.scanlink.api.dao.FileShareRespository;
 import com.example.scanlink.api.dto.*;
+import com.example.scanlink.api.handler.AppException;
+import com.example.scanlink.api.handler.ErrorCode;
 import com.example.scanlink.api.handler.ForbiddenException;
 import com.example.scanlink.api.handler.NotFoundException;
 import com.example.scanlink.api.model.FileCommon;
@@ -49,9 +51,9 @@ public class FileShareServiceImp implements FileShareService {
     @Override
     public FileShare shareFile(ShareFileRequest request) {
         FileCommon file = fileRespository.findById(request.getFileId())
-                .orElseThrow(() -> new NotFoundException("File không tồn tại"));
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
         if(!file.getUserId().equals(request.getOwnerUserId())){
-            throw new ForbiddenException("Chỉ OWNER mới được share file");
+            throw new AppException(ErrorCode.FORBIDDEN);
         }
 
         FileShare share = FileShare.builder()
@@ -63,37 +65,7 @@ public class FileShareServiceImp implements FileShareService {
         return fileShareRespository.save(share);
     }
 
-    @Override
-    public FileShare updatePermission(UpdatePermissionRequest request) {
-        // lấy ra fileShare của một FIle
-        FileShare share = fileShareRespository.findById(request.getFileShareId()).orElseThrow(()-> new NotFoundException("Share Không tồn tại"));
 
-        // người đó phải chủ file không
-        FileCommon file = fileRespository.findById(share.getFileId())
-                .orElseThrow(() -> new IOException("File không tồn tại"));
-
-        if(!file.getUserId().equals(request.getOwnerUserId())){
-            throw new ForbiddenException("Chỉ OWNER mới được đổi quyền");
-        }
-        // đặt lại quyền mới
-        share.setRole(request.getNewRole());
-        return fileShareRespository.save(share);
-    }
-    @Override
-    public FileShare updateVisibility(UpdateVisibilityRequest request) {
-        // lấy ra fileShare của một FIle
-        FileShare share = fileShareRespository.findById(request.getFileShareId()).orElseThrow(()-> new NotFoundException("Share Không tồn tại"));
-
-        // người đó phải chủ file không
-        FileCommon file = fileRespository.findById(share.getFileId())
-                .orElseThrow(() -> new IOException("File không tồn tại"));
-
-        if(!file.getUserId().equals(request.getOwnerUserId())){
-            throw new ForbiddenException("Chỉ OWNER mới được đổi quyền");
-        }
-        // đặt lại quyền mới
-        return fileShareRespository.save(share);
-    }
 
     @Override
     public SharePublicResponse createSharePublic(String userId, SharePublicRequest sharePublicRequest) {
@@ -103,7 +75,7 @@ public class FileShareServiceImp implements FileShareService {
         sharePublicRequest.setPassword(hashed);
 
         FileCommon fileCommon = fileRespository.findById(sharePublicRequest.getDocumentId())
-                .orElseThrow(() -> new NotFoundException("File không tồn tại"));
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
 
         if (fileCommon.getUserId() != null) {
             isOwner = fileCommon.getUserId().equals(userId);
@@ -112,7 +84,7 @@ public class FileShareServiceImp implements FileShareService {
         }
 
         if (!isOwner) {
-            throw new ForbiddenException("Deny access to share file");
+            throw new AppException(ErrorCode.FORBIDDEN);
         }
         FileShare fileshare = fileShareRespository.findByFileId(sharePublicRequest.getDocumentId());
         if(!sharePublicRequest.getPassword().isEmpty()){
@@ -138,7 +110,7 @@ public class FileShareServiceImp implements FileShareService {
     public SharePrivateResponse createSharePrivate(String userId, SharePrivateRequest sharePrivateRequest) {
         boolean isOwner;
         FileCommon fileCommon = fileRespository.findById(sharePrivateRequest.getDocumentId())
-                .orElseThrow(() -> new NotFoundException("File không tồn tại"));
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
 
         if (fileCommon.getUserId() != null) {
             isOwner = fileCommon.getUserId().equals(userId);
@@ -147,7 +119,7 @@ public class FileShareServiceImp implements FileShareService {
         }
 
         if (!isOwner) {
-            throw new ForbiddenException("Deny access to share file");
+            throw new AppException(ErrorCode.FORBIDDEN);
         }
         FileShare fileshare = fileShareRespository.findByFileId(sharePrivateRequest.getDocumentId());
         // find email để tìm ra user id

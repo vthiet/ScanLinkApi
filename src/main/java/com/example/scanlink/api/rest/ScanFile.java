@@ -2,7 +2,8 @@ package com.example.scanlink.api.rest;
 
 import com.example.scanlink.api.authentication.FirebaseUserPrincipal;
 import com.example.scanlink.api.dto.*;
-import com.example.scanlink.api.handler.NotFoundException;
+import com.example.scanlink.api.handler.AppException;
+import com.example.scanlink.api.handler.ErrorCode;
 import com.example.scanlink.api.model.FileCommon;
 import com.example.scanlink.api.model.FileShare;
 import com.example.scanlink.api.model.enums.Visibility;
@@ -98,7 +99,7 @@ public class ScanFile {
         FirebaseUserPrincipal principal = (FirebaseUserPrincipal) authentication.getPrincipal();
 
         List<SharedWithMeResponse> list =   fileShareService.getSharedWithMe(principal.uid());
-         if(list.isEmpty()) throw new NotFoundException("Không có file nào được share");
+         if(list.isEmpty()) throw new AppException(ErrorCode.NOT_FOUND);
          return ApiResponse.success(list);
 
     }

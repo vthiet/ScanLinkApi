@@ -4,8 +4,8 @@ import com.example.scanlink.api.dao.FileRespository;
 import com.example.scanlink.api.dao.FileShareRespository;
 import com.example.scanlink.api.dto.FileHistoryResponse;
 import com.example.scanlink.api.dto.UploadFileRequest;
-import com.example.scanlink.api.handler.ForbiddenException;
-import com.example.scanlink.api.handler.NotFoundException;
+import com.example.scanlink.api.handler.AppException;
+import com.example.scanlink.api.handler.ErrorCode;
 import com.example.scanlink.api.model.FileCommon;
 import com.example.scanlink.api.model.FileShare;
 import com.example.scanlink.api.model.enums.FileType;
@@ -117,9 +117,9 @@ public class FileServiceImp implements FileService {
 
     @Override
     public void deleteByIdAndUserId(String fileId, String userId) {
-        FileCommon file =  fileRepository.findById(fileId).orElseThrow(() -> new NotFoundException("File not found"));
+        FileCommon file =  fileRepository.findById(fileId).orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
         if(!file.getUserId().equals(userId)){
-            throw new ForbiddenException("Deny access");
+            throw new AppException(ErrorCode.FORBIDDEN);
         }
         file.setIsDeleted(true);
         file.setDeletedAt(LocalDateTime.now());
@@ -128,7 +128,7 @@ public class FileServiceImp implements FileService {
 
     private FileType detectFileType(MultipartFile file) {
         String contentType = file.getContentType();
-        if (contentType == null) throw new IllegalArgumentException("Không xác định được loại file");
+        if (contentType == null) throw new AppException(ErrorCode.NOT_FOUND);
 
         return switch (contentType) {
             case "application/pdf"    -> FileType.PDF;
