@@ -34,6 +34,8 @@ build/
 
 ### Configuration files ###
 application.properties
-application.yml
-application-*.properties
-application-*.yml
+application.yaml
+
+src/main/resources/scanlink-firebase-service-account.json
+google-services.json
+.env
