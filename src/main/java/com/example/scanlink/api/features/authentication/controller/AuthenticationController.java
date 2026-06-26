@@ -1,8 +1,8 @@
-package com.example.scanlink.api.controller;
+package com.example.scanlink.api.features.authentication.controller;
 
-import com.example.scanlink.api.dto.response.ApiResponse;
-import com.example.scanlink.api.entity.UserEntity;
-import com.example.scanlink.api.service.IUserService;
+import com.example.scanlink.api.core.response.ApiResponse;
+import com.example.scanlink.api.features.authentication.entity.UserEntity;
+import com.example.scanlink.api.features.authentication.service.IUserService;
 import com.google.firebase.auth.FirebaseToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

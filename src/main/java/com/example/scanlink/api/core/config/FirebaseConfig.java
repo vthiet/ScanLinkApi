@@ -1,4 +1,4 @@
-package com.example.scanlink.api.config;
+package com.example.scanlink.api.core.config;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;

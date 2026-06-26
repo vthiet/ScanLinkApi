@@ -1,6 +1,6 @@
-package com.example.scanlink.api.service;
+package com.example.scanlink.api.features.authentication.service;
 
-import com.example.scanlink.api.entity.UserEntity;
+import com.example.scanlink.api.features.authentication.entity.UserEntity;
 
 import java.util.Optional;
 
