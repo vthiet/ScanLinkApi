@@ -41,6 +41,8 @@ WORKDIR /app
 
 COPY --from=build /app/target/*.jar app.jar
 
+COPY --from=build /app/src/main/resources/scanlink-firebase-service-account.json /app/scanlink-firebase-service-account.json
+
 EXPOSE 8080
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
