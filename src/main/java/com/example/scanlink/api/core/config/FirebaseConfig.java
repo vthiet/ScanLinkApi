@@ -6,25 +6,41 @@ import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
+import java.io.FileInputStream;
 import java.io.InputStream;
 
 @Slf4j
 @Configuration
 public class FirebaseConfig {
 
+    @Value("${FIREBASE_SERVICE_ACCOUNT_PATH:}")
+    private String firebaseConfigPath;
+
     @PostConstruct
     public void initialize() {
         try {
             if (FirebaseApp.getApps().isEmpty()) {
+                InputStream serviceAccount = null;
 
-                InputStream serviceAccount = getClass().getClassLoader()
-                        .getResourceAsStream("scanlink-firebase-service-account.json");
+                if (firebaseConfigPath != null && !firebaseConfigPath.trim().isEmpty()) {
+                    try {
+                        serviceAccount = new FileInputStream(firebaseConfigPath);
+                        log.info(">> [Firebase] Đang tải cấu hình từ file bên ngoài: {}", firebaseConfigPath);
+                    } catch (Exception e) {
+                        log.warn(">> [Firebase] Không thể đọc file bên ngoài, thử chuyển sang classpath...");
+                    }
+                }
 
                 if (serviceAccount == null) {
-                    throw new RuntimeException("Không tìm thấy file scanlink-firebase-service-account.json trong resources!");
+                    serviceAccount = getClass().getClassLoader()
+                            .getResourceAsStream("scanlink-firebase-service-account.json");
+                }
+
+                if (serviceAccount == null) {
+                    throw new RuntimeException("Không tìm thấy file cấu hình Firebase ở cả môi trường ngoài và tài nguyên cục bộ!");
                 }
 
                 FirebaseOptions options = FirebaseOptions.builder()
@@ -32,12 +48,11 @@ public class FirebaseConfig {
                         .build();
 
                 FirebaseApp.initializeApp(options);
-
-                System.out.println(">> [Firebase] Kết nối thành công bằng Service Account!");
+                log.info(">> [Firebase] Kết nối thành công bằng Service Account!");
             }
         } catch (Exception e) {
-            System.err.println(">> [Firebase] Lỗi khởi tạo: " + e.getMessage());
-            e.printStackTrace();
+            log.error(">> [Firebase] Lỗi khởi tạo cực kỳ nghiêm trọng: {}", e.getMessage(), e);
+            throw new RuntimeException(e);
         }
     }
 
