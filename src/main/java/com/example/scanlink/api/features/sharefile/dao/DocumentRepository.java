@@ -7,7 +7,7 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import java.util.List;
 
 @RepositoryRestResource(path = "files")
-public interface FileRespository extends MongoRepository<Document,String> {
+public interface DocumentRepository extends MongoRepository<Document,String> {
 
     List<Document> findByOwnerUid(String ownerUid);
     List<Document> findByUserIdOrderByCreatedAtDesc(String userId);
