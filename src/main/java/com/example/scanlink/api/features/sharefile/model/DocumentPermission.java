@@ -1,11 +1,10 @@
 package com.example.scanlink.api.features.sharefile.model;
 
+import com.example.scanlink.api.features.sharefile.model.enums.PermissionRole;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import java.security.Permission;
 
 @Getter
 @Setter
@@ -13,5 +12,5 @@ import java.security.Permission;
 @Document(collection  = "DOCUMENT_PERMiSSION")
 public class DocumentPermission {
     private String user_uid;
-    private Permission role;
+    private PermissionRole role;
 }

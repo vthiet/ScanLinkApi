@@ -10,8 +10,8 @@ import java.util.List;
 public interface DocumentRepository extends MongoRepository<Document,String> {
 
     List<Document> findByOwnerUid(String ownerUid);
-    List<Document> findByUserIdOrderByCreatedAtDesc(String userId);
-    List<Document> findByFileNameOrderByCreatedAtDesc(String fileName);
-    Document findByIdAndUserId(String fileId, String userId);
+    List<Document> findByOwnerUidOrderByCreatedAtDesc(String ownerUid);
+    List<Document> findByTitleContainingIgnoreCaseOrderByCreatedAtDesc(String title);
+    Document findByIdAndOwnerUid(String id, String ownerUid);
 
 }
