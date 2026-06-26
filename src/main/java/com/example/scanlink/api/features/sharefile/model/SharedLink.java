@@ -12,6 +12,8 @@ import java.time.LocalDateTime;
 @Setter
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Document(collection  = "SHARED_LINKS")
 public class SharedLink {
     @Id
@@ -26,12 +28,4 @@ public class SharedLink {
    private boolean hasPassword;
    private LocalDateTime expiryDate;
    private LocalDateTime shareAt;
-
-   public SharedLink() {
-   }
-
-
-
-
-
 }

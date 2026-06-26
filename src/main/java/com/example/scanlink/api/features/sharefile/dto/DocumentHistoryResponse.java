@@ -2,17 +2,20 @@ package com.example.scanlink.api.features.sharefile.dto;
 
 import com.example.scanlink.api.features.sharefile.model.enums.PermissionRole;
 import com.example.scanlink.api.features.sharefile.model.enums.Visibility;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
 
 @Data
+@NoArgsConstructor
+@Builder
 @AllArgsConstructor
-public class FileHistoryResponse {
-    private String fileId;
-    private String fileName;
-    private String fileUrl;
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class DocumentHistoryResponse {
+    private String documentId;
+    private String title;
+    private String storageUrl;
     private LocalDateTime createdAt;
     private PermissionRole permissionRole;
     private Visibility visibility;
