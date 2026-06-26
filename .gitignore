@@ -33,8 +33,9 @@ build/
 .vscode/
 
 ### Configuration files ###
-scanlink-firebase-adminsdk.json
+application.properties
+application.yaml
+
+src/main/resources/scanlink-firebase-service-account.json
 google-services.json
-
-
 .env
