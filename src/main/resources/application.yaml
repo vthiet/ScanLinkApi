@@ -1,16 +1,15 @@
-spring:
-  application:
-    name: ScanLinkAPI
-  mongodb:
-    uri: ${MONGODB_URI}
-    database: scanlink
+server:
+  port: 8080
 
+spring:
+  mongodb:
+    uri: mongodb+srv://thietvo02_db_user:keenetic@scanlink.pkullw8.mongodb.net/scanlink_db?retryWrites=true&w=majority&appName=ScanLink
 
 cloudinary:
-  cloud-name: ${CLOUDINARY_CLOUD_NAME}
-  api-key: ${CLOUDINARY_API_KEY}
-  api-secret: ${CLOUDINARY_API_SECRET}
+  cloud-name: dusramtwo
+  api-key: 498537943778555
+  api-secret: h5HgUOZhWWdwWfcdUNWSFlaL_FU
 
-  logging:
-    level:
-      org.springframework.web: INFO
+logging:
+  level:
+    org.springframework.web: INFO
