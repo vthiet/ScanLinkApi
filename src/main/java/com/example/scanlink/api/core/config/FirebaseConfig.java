@@ -16,7 +16,7 @@ import java.io.InputStream;
 @Configuration
 public class FirebaseConfig {
 
-    @Value("${FIREBASE_SERVICE_ACCOUNT_PATH:}")
+    @Value("${firebase.service-account-path}")
     private String firebaseConfigPath;
 
     @PostConstruct
