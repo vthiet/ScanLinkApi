@@ -1,4 +1,4 @@
-package com.example.scanlink.api.entity;
+package com.example.scanlink.api.features.authentication.entity;
 
 import org.springframework.data.annotation.Id;
 import lombok.*;

@@ -1,6 +1,6 @@
-package com.example.scanlink.api.config;
+package com.example.scanlink.api.core.config;
 
-import com.example.scanlink.api.filter.FirebaseAuthenticationFilter;
+import com.example.scanlink.api.core.filter.FirebaseAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

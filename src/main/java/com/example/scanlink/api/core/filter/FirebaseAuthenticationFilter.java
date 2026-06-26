@@ -1,4 +1,4 @@
-package com.example.scanlink.api.filter;
+package com.example.scanlink.api.core.filter;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
