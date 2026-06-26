@@ -3,6 +3,7 @@ package com.example.scanlink.api.core.filter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
+import org.springframework.beans.factory.annotation.Value;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,6 +15,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class FirebaseAuthenticationFilter extends OncePerRequestFilter{
@@ -43,4 +45,5 @@ public class FirebaseAuthenticationFilter extends OncePerRequestFilter{
 
         filterChain.doFilter(request, response);
     }
+
 }

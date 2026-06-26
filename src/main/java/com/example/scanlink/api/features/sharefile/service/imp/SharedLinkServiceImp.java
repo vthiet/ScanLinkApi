@@ -9,8 +9,6 @@ import com.example.scanlink.api.handler.ErrorCode;
 import com.example.scanlink.api.features.sharefile.model.Document;
 import com.example.scanlink.api.features.sharefile.model.DocumentPermission;
 import com.example.scanlink.api.features.sharefile.model.SharedLink;
-import com.example.scanlink.api.features.sharefile.model.enums.PermissionRole;
-import com.example.scanlink.api.features.sharefile.model.enums.Visibility;
 import com.example.scanlink.api.features.sharefile.service.interfaces.ISharedLink;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -81,36 +79,36 @@ public class SharedLinkServiceImp implements ISharedLink {
     }
 
     @Override
-    public SharePublicResponse createSharePublic(String userId, SharePublicRequest sharePublicRequest) {
+    public SharePublicResponse createSharePublic(String userId, CreatePublicShareRequest createPublicShareRequest) {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        String hashed = encoder.encode(sharePublicRequest.getPassword());
-        sharePublicRequest.setPassword(hashed);
+        String hashed = encoder.encode(createPublicShareRequest.getPassword());
+        createPublicShareRequest.setPassword(hashed);
 
-        Document fileCommon = documentRepository.findById(sharePublicRequest.getDocumentId())
+        Document fileCommon = documentRepository.findById(createPublicShareRequest.getDocumentId())
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
 
         if (fileCommon.getOwnerUid() == null || !fileCommon.getOwnerUid().equals(userId)) {
             throw new AppException(ErrorCode.FORBIDDEN);
         }
 
-        SharedLink fileshare = sharedLinkRepository.findByDocumentId(sharePublicRequest.getDocumentId());
+        SharedLink fileshare = sharedLinkRepository.findByDocumentId(createPublicShareRequest.getDocumentId());
         if(fileshare == null) {
             fileshare = new SharedLink();
-            fileshare.setDocumentId(sharePublicRequest.getDocumentId());
+            fileshare.setDocumentId(createPublicShareRequest.getDocumentId());
             fileshare.setShareAt(LocalDateTime.now());
             fileshare.setExpiryDate(LocalDateTime.now());
             fileshare.setHashToken(java.util.UUID.randomUUID().toString());
         }
 
-        if(!sharePublicRequest.getPassword().isEmpty()){
+        if(!createPublicShareRequest.getPassword().isEmpty()){
             fileshare.setHasPassword(true);
-            fileshare.setHashToken(sharePublicRequest.getPassword());
+            fileshare.setHashToken(createPublicShareRequest.getPassword());
         }
         if(fileshare.getExpiryDate() == null) {
             fileshare.setExpiryDate(LocalDateTime.now());
         }
-        fileshare.setExpiryDate(fileshare.getExpiryDate().plusDays(sharePublicRequest.getExpireInDays()));
-        fileshare.setRole(sharePublicRequest.getPermissionRole());
+        fileshare.setExpiryDate(fileshare.getExpiryDate().plusDays(createPublicShareRequest.getExpireInDays()));
+        fileshare.setRole(createPublicShareRequest.getPermissionRole());
         
         sharedLinkRepository.save(fileshare);
 

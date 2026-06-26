@@ -1,4 +1,8 @@
 spring:
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
   application:
     name: ScanLinkAPI
   mongodb:
@@ -14,3 +18,8 @@ cloudinary:
   logging:
     level:
       org.springframework.web: INFO
+
+scanlink:
+  storage:
+    url_folder_server: "C:/Users/ADMIN/Downloads/test"
+    url_folder_cloudinary: "scanlink/uploads"
