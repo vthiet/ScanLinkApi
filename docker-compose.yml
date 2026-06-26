@@ -7,6 +7,10 @@ services:
     restart: unless-stopped
     expose:
       - "8080"
+    volumes:
+      - ./ScanLinkApi/src/main/resources/scanlink-firebase-service-account.json:/app/scanlink-firebase-service-account.json:ro
+    environment:
+      - FIREBASE_SERVICE_ACCOUNT_PATH=/app/scanlink-firebase-service-account.json
 
   nginx:
     image: nginx:stable
