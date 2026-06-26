@@ -18,7 +18,7 @@ public class SharedLink {
    private String hashToken;
 
     @Indexed
-   private String fileId;
+   private String documentId;
 
    @Indexed
    private String shareWithUserId;

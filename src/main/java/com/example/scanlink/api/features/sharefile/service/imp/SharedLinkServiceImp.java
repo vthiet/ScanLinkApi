@@ -1,16 +1,15 @@
 package com.example.scanlink.api.features.sharefile.service.imp;
 
-import com.example.scanlink.api.features.sharefile.dao.FileRespository;
-import com.example.scanlink.api.features.sharefile.dao.FileShareRespository;
+import com.example.scanlink.api.features.sharefile.dao.DocumentRepository;
+import com.example.scanlink.api.features.sharefile.dao.SharedLinkRepository;
 import com.example.scanlink.api.features.sharefile.dto.*;
 import com.example.scanlink.api.handler.AppException;
 import com.example.scanlink.api.handler.ErrorCode;
-import com.example.scanlink.api.handler.ForbiddenException;
-import com.example.scanlink.api.handler.NotFoundException;
+
 import com.example.scanlink.api.features.sharefile.model.Document;
 import com.example.scanlink.api.features.sharefile.model.SharedLink;
 import com.example.scanlink.api.features.sharefile.model.enums.Visibility;
-import com.example.scanlink.api.features.sharefile.service.interfaces.FileShareService;
+import com.example.scanlink.api.features.sharefile.service.interfaces.ISharedLink;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,9 +19,9 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @Service
-public class FileShareServiceImp implements FileShareService {
-    private final FileShareRespository fileShareRespository;
-    private final FileRespository fileRespository;
+public class SharedLinkServiceImp implements ISharedLink {
+    private final SharedLinkRepository sharedLinkRepository;
+    private final DocumentRepository documentRepository;
 
     @Override
     public List<SharedWithMeResponse> getSharedWithMe(String userId) {
@@ -49,19 +48,19 @@ public class FileShareServiceImp implements FileShareService {
 
     @Override
     public SharedLink shareFile(ShareFileRequest request) {
-        Document file = fileRespository.findById(request.getFileId())
+        Document file = documentRepository.findById(request.getFileId())
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
         if(!file.getOwnerUid().equals(request.getOwnerUserId())){
             throw new AppException(ErrorCode.FORBIDDEN);
         }
 
         SharedLink share = SharedLink.builder()
-                .fileId(request.getFileId())
+                .documentId(request.getFileId())
                 .shareWithUserId(request.getTargetUserId())
                 .role(request.getRole())
                 .shareAt(LocalDateTime.now())
                 .build();
-        return fileShareRespository.save(share);
+        return sharedLinkRepository.save(share);
     }
 
 
@@ -73,7 +72,7 @@ public class FileShareServiceImp implements FileShareService {
         String hashed = encoder.encode(sharePublicRequest.getPassword());
         sharePublicRequest.setPassword(hashed);
 
-        Document fileCommon = fileRespository.findById(sharePublicRequest.getDocumentId())
+        Document fileCommon = documentRepository.findById(sharePublicRequest.getDocumentId())
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
 
         if (fileCommon.getOwnerUid() != null) {
@@ -85,7 +84,7 @@ public class FileShareServiceImp implements FileShareService {
         if (!isOwner) {
             throw new AppException(ErrorCode.FORBIDDEN);
         }
-        SharedLink fileshare = fileShareRespository.findByFileId(sharePublicRequest.getDocumentId());
+        SharedLink fileshare = sharedLinkRepository.findByFileId(sharePublicRequest.getDocumentId());
         if(!sharePublicRequest.getPassword().isEmpty()){
             fileshare.setHasPassword(true);
             fileshare.setHashToken(sharePublicRequest.getPassword());
@@ -93,12 +92,12 @@ public class FileShareServiceImp implements FileShareService {
         fileshare.setExpiryDate(fileshare.getExpiryDate().plusDays(sharePublicRequest.getExpireInDays()));
         fileshare.setRole(sharePublicRequest.getPermissionRole());
         fileCommon.setVisibility(Visibility.PUBLIC);
-        fileShareRespository.save(fileshare);
-        fileRespository.save(fileCommon);
+        sharedLinkRepository.save(fileshare);
+        documentRepository.save(fileCommon);
 
         // đang share bằng link lưu file gốc ở Cloudinary
         SharePublicResponse res = new SharePublicResponse(fileshare.getHashToken(),
-                fileshare.getFileId(),
+                fileshare.getDocumentId(),
                 fileshare.getExpiryDate(),
                 fileshare.isHasPassword(),
                 fileCommon.getStorageUrl());
@@ -108,7 +107,7 @@ public class FileShareServiceImp implements FileShareService {
     @Override
     public SharePrivateResponse createSharePrivate(String userId, SharePrivateRequest sharePrivateRequest) {
         boolean isOwner;
-        Document fileCommon = fileRespository.findById(sharePrivateRequest.getDocumentId())
+        Document fileCommon = documentRepository.findById(sharePrivateRequest.getDocumentId())
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
 
         if (fileCommon.getOwnerUid() != null) {
@@ -120,12 +119,12 @@ public class FileShareServiceImp implements FileShareService {
         if (!isOwner) {
             throw new AppException(ErrorCode.FORBIDDEN);
         }
-        SharedLink fileshare = fileShareRespository.findByFileId(sharePrivateRequest.getDocumentId());
+        SharedLink fileshare = sharedLinkRepository.findByFileId(sharePrivateRequest.getDocumentId());
         // find email để tìm ra user id
         //... code tại đây
 
         fileshare.setRole(sharePrivateRequest.getPermissionRole());
-        fileShareRespository.save(fileshare);
+        sharedLinkRepository.save(fileshare);
 
 
         return new SharePrivateResponse(sharePrivateRequest.getDocumentId(),sharePrivateRequest.getShareToEmail(),sharePrivateRequest.getPermissionRole());

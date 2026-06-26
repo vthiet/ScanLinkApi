@@ -6,35 +6,36 @@ import lombok.Data;
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse <T>{
-    private int code;
+    private String status;
     private String message;
     private T result;
 
-    public ApiResponse(int code, String message, T result){
-        this.code = code;
+    public ApiResponse(String status, String message, T result){
+        this.status = status;
         this.message = message;
         this.result = result;
     }
 
-    public ApiResponse(int code, String message) {
-        this.code = code;
+    public ApiResponse(String status, String message) {
+        this.status = status;
         this.message = message;
     }
 
     public static <T> ApiResponse<T> success(T result) {
-        return new ApiResponse<>(200, "Thành công", result);
+        return new ApiResponse<>("success", "Thành công", result);
     }
 
-    public static <T> ApiResponse<T> error(int code, String message) {
-        return new ApiResponse<>(code, message, null);
+    public static <T> ApiResponse<T> error(String message) {
+        return new ApiResponse<>("failed", message, null);
     }
 
-    public int getCode() {
-        return code;
+
+    public String getStatus() {
+        return status;
     }
 
-    public void setCode(int code) {
-        this.code = code;
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public String getMessage() {

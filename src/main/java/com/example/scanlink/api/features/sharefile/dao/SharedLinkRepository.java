@@ -7,7 +7,7 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import java.util.List;
 
 @RepositoryRestResource(path = "file_shares")
-public interface FileShareRespository extends MongoRepository<SharedLink,String> {
+public interface SharedLinkRepository extends MongoRepository<SharedLink,String> {
     List<SharedLink> findByShareWithUserIdOrderByShareAtDesc(String sharedWithUserId);
     SharedLink findByFileId(String id);
 }

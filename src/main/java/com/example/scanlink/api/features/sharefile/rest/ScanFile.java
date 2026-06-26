@@ -6,8 +6,8 @@ import com.example.scanlink.api.features.sharefile.dto.*;
 import com.example.scanlink.api.handler.AppException;
 import com.example.scanlink.api.handler.ErrorCode;
 import com.example.scanlink.api.features.sharefile.model.Document;
-import com.example.scanlink.api.features.sharefile.service.interfaces.FileService;
-import com.example.scanlink.api.features.sharefile.service.interfaces.FileShareService;
+import com.example.scanlink.api.features.sharefile.service.interfaces.IDocumentService;
+import com.example.scanlink.api.features.sharefile.service.interfaces.ISharedLink;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,8 +24,8 @@ import java.util.List;
 @RequestMapping("/api/v1")
 public class ScanFile {
     private final CloudinaryService cloudinaryService;
-    private final FileService fileService;
-    private final FileShareService fileShareService;
+    private final IDocumentService IDocumentService;
+    private final ISharedLink ISharedLink;
 
     // Đã test postman
     @PostMapping("/documents")
@@ -34,7 +34,7 @@ public class ScanFile {
                                     @RequestParam String type) throws IOException {
         FirebaseUserPrincipal principal = (FirebaseUserPrincipal) authentication.getPrincipal();
         String userId = principal.uid();
-        Document saved = fileService.uploadAndSave(file, userId, type);
+        Document saved = IDocumentService.uploadAndSave(file, userId, type);
 
         return ApiResponse.success(saved);
     }
@@ -45,7 +45,7 @@ public class ScanFile {
         FirebaseUserPrincipal principal = (FirebaseUserPrincipal) authentication.getPrincipal();
         String userId = principal.uid();
         if(userId == null) throw new IllegalArgumentException("userid Cannot empty");
-        List<FileHistoryResponse> files = fileService.getFilesByUserId(userId);
+        List<FileHistoryResponse> files = IDocumentService.getFilesByUserId(userId);
         return ApiResponse.success(files);
     }
 
@@ -53,7 +53,7 @@ public class ScanFile {
     @GetMapping("/documents/{id}")
     public ApiResponse<?> getDocumentById(Authentication authentication,@PathVariable String id) {
         FirebaseUserPrincipal principal = (FirebaseUserPrincipal) authentication.getPrincipal();
-       Document file = fileService.findByIdAndUserId(id,principal.uid());
+       Document file = IDocumentService.findByIdAndUserId(id,principal.uid());
         return ApiResponse.success(file);
 
     }
@@ -61,13 +61,13 @@ public class ScanFile {
     @DeleteMapping("/documents/{id}")
     public ApiResponse<?> deleteDocumentById(Authentication authentication,@PathVariable String id) {
         FirebaseUserPrincipal principal = (FirebaseUserPrincipal) authentication.getPrincipal();
-       fileService.deleteByIdAndUserId(id,principal.uid());
+       IDocumentService.deleteByIdAndUserId(id,principal.uid());
         return ApiResponse.success(null);
     }
     @PostMapping("/shares/public")
     public ApiResponse<?> getPublicShares(Authentication authentication, SharePublicRequest sharePublicRequest) {
         FirebaseUserPrincipal principal = (FirebaseUserPrincipal) authentication.getPrincipal();
-       SharePublicResponse res= fileShareService.createSharePublic(principal.uid(), sharePublicRequest);
+       SharePublicResponse res= ISharedLink.createSharePublic(principal.uid(), sharePublicRequest);
 
         return ApiResponse.success(res);
     }
@@ -75,7 +75,7 @@ public class ScanFile {
     @PostMapping("/shares/private")
     public ApiResponse<?> getPrivateShares(Authentication authentication, SharePrivateRequest sharePrivateRequest) {
         FirebaseUserPrincipal principal = (FirebaseUserPrincipal) authentication.getPrincipal();
-        SharePrivateResponse res= fileShareService.createSharePrivate(principal.uid(), sharePrivateRequest);
+        SharePrivateResponse res= ISharedLink.createSharePrivate(principal.uid(), sharePrivateRequest);
 
         return ApiResponse.success(res);
     }
@@ -94,7 +94,7 @@ public class ScanFile {
     public ApiResponse<?> shareWithMe(Authentication authentication) {
         FirebaseUserPrincipal principal = (FirebaseUserPrincipal) authentication.getPrincipal();
 
-        List<SharedWithMeResponse> list =   fileShareService.getSharedWithMe(principal.uid());
+        List<SharedWithMeResponse> list =   ISharedLink.getSharedWithMe(principal.uid());
          if(list.isEmpty()) throw new AppException(ErrorCode.NOT_FOUND);
          return ApiResponse.success(list);
 
