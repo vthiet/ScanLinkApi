@@ -1,11 +1,14 @@
 package com.example.scanlink.api.features.sharefile.dto;
 
 import com.example.scanlink.api.features.sharefile.model.enums.PermissionRole;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.*;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @AllArgsConstructor
-@Data
+@NoArgsConstructor
+@Getter
+@Setter
 public class SharePrivateResponse {
     String documentId;
     String collaboratorEmail;

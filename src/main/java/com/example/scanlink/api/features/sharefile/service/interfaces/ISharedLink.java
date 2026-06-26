@@ -9,7 +9,7 @@ public interface ISharedLink {
     List<SharedWithMeResponse> getSharedWithMe(String userId);
     SharedLink shareFile(ShareFileRequest request);
 
-    SharePublicResponse createSharePublic(String userId, SharePublicRequest sharePublicRequest);
+    SharePublicResponse createSharePublic(String userId, CreatePublicShareRequest createPublicShareRequest);
     SharePrivateResponse createSharePrivate(String userId, SharePrivateRequest sharePrivateRequest);
 
 }

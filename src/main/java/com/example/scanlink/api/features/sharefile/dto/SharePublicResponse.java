@@ -1,12 +1,14 @@
 package com.example.scanlink.api.features.sharefile.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.*;
 
 import java.time.LocalDateTime;
-
 @AllArgsConstructor
-@Data
+@NoArgsConstructor
+@Getter
+@Setter
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class SharePublicResponse {
     String hasToken;
     String documentId;

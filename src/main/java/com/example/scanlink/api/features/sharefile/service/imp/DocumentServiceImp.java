@@ -3,6 +3,7 @@ package com.example.scanlink.api.features.sharefile.service.imp;
 import com.example.scanlink.api.features.sharefile.dao.DocumentRepository;
 import com.example.scanlink.api.features.sharefile.dao.SharedLinkRepository;
 import com.example.scanlink.api.features.sharefile.dto.DocumentHistoryResponse;
+import com.example.scanlink.api.features.sharefile.dto.FileUploadRequest;
 import com.example.scanlink.api.features.sharefile.dto.UploadFileRequest;
 import com.example.scanlink.api.handler.AppException;
 import com.example.scanlink.api.handler.ErrorCode;
@@ -10,11 +11,10 @@ import com.example.scanlink.api.features.sharefile.model.Document;
 import com.example.scanlink.api.features.sharefile.model.SharedLink;
 import com.example.scanlink.api.features.sharefile.model.enums.PermissionRole;
 import com.example.scanlink.api.features.sharefile.model.enums.Visibility;
-import com.example.scanlink.api.features.sharefile.service.interfaces.CloudinaryService;
+import com.example.scanlink.api.features.sharefile.service.interfaces.ICloudinaryService;
 import com.example.scanlink.api.features.sharefile.service.interfaces.IDocumentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -30,16 +30,16 @@ public class DocumentServiceImp implements IDocumentService {
 
     private final DocumentRepository documentRepository;
     private final SharedLinkRepository sharedLinkRepository;
-    private final CloudinaryService cloudinaryService;
+    private final ICloudinaryService cloudinaryService;
 
     @Override
     public Document saveFile(UploadFileRequest request) {
 
         Document file = new Document();
-        file.setTitle(request.getFileName());
-        file.setFileSize(request.getSize());
-        file.setOwnerUid(request.getUserId());
-        file.setStorageUrl(request.getFileUrl());
+        file.setTitle(request.fileName());
+        file.setFileSize(request.size());
+        file.setOwnerUid(request.userId());
+        file.setStorageUrl(request.fileUrl());
         file.setCreatedAt(LocalDateTime.now());
         return documentRepository.save(file);
     }
@@ -83,25 +83,39 @@ public class DocumentServiceImp implements IDocumentService {
     }
 
     @Override
-    public Document uploadAndSave(MultipartFile file, String userId, String title, String extractText) throws IOException {
-        // upload file cloudinary
-        Map uploadResult = cloudinaryService.uploadFile(file.getBytes(), "scanlink/uploads");
-        String publicId = (String) uploadResult.get("publicId");
+    public Document uploadAndSave(FileUploadRequest fileUploadRequest, String userId) throws IOException {
+        if (userId == null) throw new AppException(ErrorCode.NOT_FOUND);
 
-        if(userId ==null) throw new AppException(ErrorCode.NOT_FOUND);
+        String originalName = fileUploadRequest.getFile().getOriginalFilename();
+        if (originalName == null) {
+            throw new AppException(ErrorCode.BAD_REQUEST);
+        }
+
+        Map uploadResult = cloudinaryService.uploadFile(fileUploadRequest.getFile());
+        if (uploadResult == null) {
+            throw new AppException(ErrorCode.INTERNAL_ERROR);
+        }
+
+        String url = (String) uploadResult.get("secure_url");
+        String publicId = (String) uploadResult.get("public_id");
+
         try {
             Document entity = new Document();
-            entity.setTitle(title);
-            entity.setFileSize(file.getSize());
+            entity.setTitle(fileUploadRequest.getTitle());
+            entity.setFileSize(fileUploadRequest.getFile().getSize());
             entity.setOwnerUid(userId);
-            entity.setStorageUrl((String) uploadResult.get("url"));
             entity.setCreatedAt(LocalDateTime.now());
-            entity.setExtractedText(extractText);
+            entity.setStorageUrl(url);
+            entity.setCloudinaryPublicId(publicId);
+            entity.setExtractedText(fileUploadRequest.getExtractedText());
+            entity.setOriginalFilename(originalName);
 
             return documentRepository.save(entity);
-        }catch (Exception e) {
-                 cloudinaryService.deleteFile(publicId);
-            throw new IllegalArgumentException("File upload failed");
+        } catch (Exception e) {
+            if (publicId != null) {
+                cloudinaryService.delete(publicId);
+            }
+            throw new AppException(ErrorCode.INTERNAL_ERROR);
         }
     }
 
