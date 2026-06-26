@@ -42,17 +42,12 @@ public class FirebaseAuthenticationFilter extends OncePerRequestFilter {
                         decodedToken.getUid(),
                         ((Map<?, ?>) decodedToken.getClaims().get("firebase")).get("sign_in_provider"));
 
-                System.out.println("Firebase token verified. UID: {}" + decodedToken.getUid() +
-                        ", Provider: " +  ((Map<?, ?>) decodedToken.getClaims().get("firebase")).get("sign_in_provider"));
-
             } catch (FirebaseAuthException e) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Token is invalid or expired!");
-                System.out.println("Token is invalid or expired!");
                 return;
             } catch (Exception e) {
                 logger.error("Unexpected error during Firebase token verification: {}", e.getMessage(), e);
-                System.out.println("Unexpected error during Firebase token verification: " + e.getMessage());
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Authentication failed: " + e.getMessage());
                 return;
