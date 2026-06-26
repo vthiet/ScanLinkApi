@@ -1,4 +1,4 @@
-package com.example.scanlink.api.config;
+package com.example.scanlink.api.core.config;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
