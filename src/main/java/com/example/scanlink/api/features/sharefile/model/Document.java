@@ -36,7 +36,7 @@ import java.util.List;
     private LocalDateTime deletedAt;
 
     @NonNull
-    private String originalFilename;
+    private String resourceType;
 
     private String cloudinaryPublicId;
 }

@@ -1,7 +1,7 @@
 package com.example.scanlink.api.features.sharefile.service.imp;
 
 import com.example.scanlink.api.features.sharefile.model.Document;
-import com.example.scanlink.api.features.sharefile.service.interfaces.IFileStorageService;
+import com.example.scanlink.api.features.sharefile.service.interfaces.FileStorageService;
 import com.example.scanlink.api.handler.AppException;
 import com.example.scanlink.api.handler.ErrorCode;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,7 +15,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 
 @Service
-public class FileStorageServiceImp implements IFileStorageService {
+public class FileStorageServiceImp implements FileStorageService {
     @Value("${scanlink.storage.url_folder_server}")
     private String URL_FOLDER;
 

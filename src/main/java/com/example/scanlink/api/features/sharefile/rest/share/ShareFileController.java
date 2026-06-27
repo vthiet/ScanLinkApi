@@ -2,7 +2,7 @@ package com.example.scanlink.api.features.sharefile.rest.share;
 
 import com.example.scanlink.api.dto.ApiResponse;
 import com.example.scanlink.api.features.sharefile.dto.*;
-import com.example.scanlink.api.features.sharefile.service.interfaces.ISharedLink;
+import com.example.scanlink.api.features.sharefile.service.interfaces.SharedLinkService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,12 +13,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/shares")
 public class ShareFileController {
-    private final ISharedLink sharedLinkService;
+    private final SharedLinkService sharedLinkService;
 
     @PostMapping("/public")
-    public ApiResponse<?> createPublicLink(Authentication authentication, CreatePublicShareRequest createPublicShareRequest) {
+    public ApiResponse<?> createPublicLink(Authentication authentication, CreatePublicRequest createPublicRequest) {
         String userId = (String) authentication.getPrincipal();
-        SharePublicResponse res = sharedLinkService.createSharePublic(userId, createPublicShareRequest);
+        CreatePublicResponse res = sharedLinkService.createSharePublic(userId, createPublicRequest);
 
         return ApiResponse.success(res);
     }

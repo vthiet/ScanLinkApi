@@ -3,35 +3,26 @@ package com.example.scanlink.api.features.sharefile.service.imp;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.Transformation;
 import com.cloudinary.utils.ObjectUtils;
-import com.example.scanlink.api.dto.ApiResponse;
-import com.example.scanlink.api.features.sharefile.service.interfaces.ICloudinaryService;
+import com.example.scanlink.api.features.sharefile.service.interfaces.CloudinaryService;
 import com.example.scanlink.api.handler.AppException;
 import com.example.scanlink.api.handler.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.Map;
 
 
 @Service
 @RequiredArgsConstructor
-public class CloudinaryImp implements ICloudinaryService {
+public class CloudinaryImp implements CloudinaryService {
     private final Cloudinary cloudinary;
 
     @Value("${scanlink.storage.url_folder_cloudinary}")
@@ -86,5 +77,17 @@ public class CloudinaryImp implements ICloudinaryService {
                 "resource_type", "raw",        // mặc định "raw" cho document
                 "invalidate", true             // xóa cache CDN luôn
         ));
+    }
+    @Override
+    public String generateDownloadUrlSecure(String publicId, String resourceType, int days) throws Exception {
+        long expireAt = System.currentTimeMillis() / 1000L + (days * 24L * 60 * 60);
+
+        return cloudinary.url()
+                .secure(true)
+                .resourceType(resourceType)
+                .type("upload")
+                .signed(true)
+                .transformation(new Transformation().flags("attachment"))
+                .generate(publicId);
     }
 }

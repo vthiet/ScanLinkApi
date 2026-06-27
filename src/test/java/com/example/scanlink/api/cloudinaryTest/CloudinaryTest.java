@@ -6,12 +6,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import com.example.scanlink.api.features.sharefile.service.interfaces.ICloudinaryService;
+import com.example.scanlink.api.features.sharefile.service.interfaces.CloudinaryService;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,7 +20,7 @@ public class CloudinaryTest {
     private Cloudinary cloudinary;
 
     @Autowired
-    private ICloudinaryService cloudinaryService;
+    private CloudinaryService cloudinaryService;
 
     @Test
     void testCloudinaryConnection() throws Exception {

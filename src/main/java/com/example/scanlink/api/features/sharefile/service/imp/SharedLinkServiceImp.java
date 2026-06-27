@@ -4,195 +4,96 @@ import com.example.scanlink.api.features.authentication.entity.UserEntity;
 import com.example.scanlink.api.features.sharefile.dao.DocumentRepository;
 import com.example.scanlink.api.features.sharefile.dao.SharedLinkRepository;
 import com.example.scanlink.api.features.sharefile.dto.*;
+import com.example.scanlink.api.features.sharefile.model.SharedLink;
+import com.example.scanlink.api.features.sharefile.service.interfaces.CloudinaryService;
 import com.example.scanlink.api.handler.AppException;
 import com.example.scanlink.api.handler.ErrorCode;
 import com.example.scanlink.api.features.sharefile.model.Document;
 import com.example.scanlink.api.features.sharefile.model.DocumentPermission;
-import com.example.scanlink.api.features.sharefile.model.SharedLink;
-import com.example.scanlink.api.features.sharefile.service.interfaces.ISharedLink;
+import com.example.scanlink.api.features.sharefile.service.interfaces.SharedLinkService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
-public class SharedLinkServiceImp implements ISharedLink {
-    private final SharedLinkRepository sharedLinkRepository;
+public class SharedLinkServiceImp implements SharedLinkService {
     private final DocumentRepository documentRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final CloudinaryService cloudinaryService;
     private final MongoTemplate mongoTemplate;
 
     @Override
-    public List<SharedWithMeResponse> getSharedWithMe(String userId) {
-        return sharedLinkRepository.findByShareWithUserIdOrderByShareAtDesc(userId)
-                .stream()
-                .map(share -> {
-                    Document file = documentRepository.findById(share.getDocumentId())
-                            .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+    public CreatePublicResponse createSharePublic(String userId, CreatePublicRequest request) {
 
-                    return new SharedWithMeResponse(
-                            file.getId(),
-                            file.getTitle(),
-                            file.getStorageUrl(),
-                            file.getOwnerUid(),
-                            share.getRole(),
-                            share.getShareAt()
-                    );
-                })
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public SharedLink shareFile(ShareFileRequest request) {
-        Document file = documentRepository.findById(request.getFileId())
+        Document docs = documentRepository.findById(request.getDocumentId())
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
-        if(!file.getOwnerUid().equals(request.getOwnerUserId())){
+
+        if (!docs.getOwnerUid().equals(userId)) {
             throw new AppException(ErrorCode.FORBIDDEN);
         }
 
-        SharedLink share = SharedLink.builder()
-                .hashToken(java.util.UUID.randomUUID().toString())
-                .documentId(request.getFileId())
-                .shareWithUserId(request.getTargetUserId())
-                .role(request.getRole())
-                .shareAt(LocalDateTime.now())
-                .build();
-        
-        SharedLink savedShare = sharedLinkRepository.save(share);
+        List<SharedLink> links = docs.getSharedLinks();
+        if (links == null) links = new ArrayList<>();
 
-        // Sync nested/embedded sharedLinks in Document
-        List<SharedLink> links = file.getSharedLinks();
-        if (links == null) {
-            links = new java.util.ArrayList<>();
-        }
-        links.add(savedShare);
-        file.setSharedLinks(links);
-        documentRepository.save(file);
+        SharedLink fileshare = links.stream()
+                .filter(l -> l.getShareWithUserId() == null)
+                .findFirst()
+                .orElse(null);
 
-        return savedShare;
-    }
-
-    @Override
-    public SharePublicResponse createSharePublic(String userId, CreatePublicShareRequest createPublicShareRequest) {
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        String hashed = encoder.encode(createPublicShareRequest.getPassword());
-        createPublicShareRequest.setPassword(hashed);
-
-        Document fileCommon = documentRepository.findById(createPublicShareRequest.getDocumentId())
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
-
-        if (fileCommon.getOwnerUid() == null || !fileCommon.getOwnerUid().equals(userId)) {
-            throw new AppException(ErrorCode.FORBIDDEN);
+        if (fileshare == null) {
+            fileshare = SharedLink.builder()
+                    .hashToken(UUID.randomUUID().toString())
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            links.add(fileshare);
         }
 
-        SharedLink fileshare = sharedLinkRepository.findByDocumentId(createPublicShareRequest.getDocumentId());
-        if(fileshare == null) {
-            fileshare = new SharedLink();
-            fileshare.setDocumentId(createPublicShareRequest.getDocumentId());
-            fileshare.setShareAt(LocalDateTime.now());
-            fileshare.setExpiryDate(LocalDateTime.now());
-            fileshare.setHashToken(java.util.UUID.randomUUID().toString());
-        }
-
-        if(!createPublicShareRequest.getPassword().isEmpty()){
+        String rawPassword = request.getPassword();
+        if (rawPassword != null && !rawPassword.isBlank()) {
             fileshare.setHasPassword(true);
-            fileshare.setHashToken(createPublicShareRequest.getPassword());
+            fileshare.setPasswordHash(passwordEncoder.encode(rawPassword));
+        } else {
+            fileshare.setHasPassword(false);
+            fileshare.setPasswordHash(null);
         }
-        if(fileshare.getExpiryDate() == null) {
-            fileshare.setExpiryDate(LocalDateTime.now());
-        }
-        fileshare.setExpiryDate(fileshare.getExpiryDate().plusDays(createPublicShareRequest.getExpireInDays()));
-        fileshare.setRole(createPublicShareRequest.getPermissionRole());
-        
-        sharedLinkRepository.save(fileshare);
 
-        // Sync nested/embedded sharedLinks in Document
-        List<SharedLink> links = fileCommon.getSharedLinks();
-        if (links == null) {
-            links = new java.util.ArrayList<>();
-        }
-        links.removeIf(l -> fileCommon.getId().equals(l.getDocumentId()) && l.getShareWithUserId() == null);
-        links.add(fileshare);
-        fileCommon.setSharedLinks(links);
-        documentRepository.save(fileCommon);
+        fileshare.setExpiresAt(LocalDateTime.now().plusDays(request.getExpireInDays()));
 
-        SharePublicResponse res = new SharePublicResponse(
-                fileshare.getHashToken(),
-                fileshare.getDocumentId(),
-                fileshare.getExpiryDate(),
-                fileshare.isHasPassword(),
-                fileCommon.getStorageUrl()
-        );
+        String shareUrl;
+        try {
+            shareUrl = cloudinaryService.generateDownloadUrlSecure(
+                    docs.getCloudinaryPublicId(),
+                    docs.getResourceType(),
+                    request.getExpireInDays()
+            );
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.INTERNAL_ERROR);
+        }
+
+        docs.setSharedLinks(links);
+        documentRepository.save(docs);
+
+        CreatePublicResponse res = new CreatePublicResponse();
+        res.setHashToken(fileshare.getHashToken());
+        res.setDocumentId(request.getDocumentId());
+        res.setExpiresAt(fileshare.getExpiresAt());
+        res.setHasPassword(fileshare.isHasPassword());
+        res.setShareUrl(shareUrl);
         return res;
     }
 
     @Override
-    public SharePrivateResponse createSharePrivate(String userId, SharePrivateRequest sharePrivateRequest) {
-        Document fileCommon = documentRepository.findById(sharePrivateRequest.getDocumentId())
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
-
-        if (fileCommon.getOwnerUid() == null || !fileCommon.getOwnerUid().equals(userId)) {
-            throw new AppException(ErrorCode.FORBIDDEN);
-        }
-
-        // find email to find user ID
-        Query query = new Query(Criteria.where("email").is(sharePrivateRequest.getShareToEmail()));
-        UserEntity collaborator = mongoTemplate.findOne(query, UserEntity.class);
-        if (collaborator == null) {
-            throw new AppException(ErrorCode.NOT_FOUND);
-        }
-
-        SharedLink fileshare = sharedLinkRepository.findByDocumentIdAndShareWithUserId(
-                sharePrivateRequest.getDocumentId(), collaborator.getUid());
-        if (fileshare == null) {
-            fileshare = new SharedLink();
-            fileshare.setDocumentId(sharePrivateRequest.getDocumentId());
-            fileshare.setShareWithUserId(collaborator.getUid());
-            fileshare.setShareAt(LocalDateTime.now());
-            fileshare.setHashToken(java.util.UUID.randomUUID().toString());
-        }
-        fileshare.setRole(sharePrivateRequest.getPermissionRole());
-        sharedLinkRepository.save(fileshare);
-
-        // Sync nested/embedded permissions in Document
-        List<DocumentPermission> permissions = fileCommon.getPermissions();
-        if (permissions == null) {
-            permissions = new java.util.ArrayList<>();
-        }
-        DocumentPermission perm = permissions.stream()
-                .filter(p -> collaborator.getUid().equals(p.getUser_uid()))
-                .findFirst()
-                .orElse(null);
-        if (perm == null) {
-            perm = new DocumentPermission();
-            perm.setUser_uid(collaborator.getUid());
-            permissions.add(perm);
-        }
-        perm.setRole(sharePrivateRequest.getPermissionRole());
-        fileCommon.setPermissions(permissions);
-
-        // Sync nested/embedded sharedLinks in Document
-        List<SharedLink> links = fileCommon.getSharedLinks();
-        if (links == null) {
-            links = new java.util.ArrayList<>();
-        }
-        links.removeIf(l -> fileCommon.getId().equals(l.getDocumentId()) && collaborator.getUid().equals(l.getShareWithUserId()));
-        links.add(fileshare);
-        fileCommon.setSharedLinks(links);
-
-        documentRepository.save(fileCommon);
-
-        return new SharePrivateResponse(
-                sharePrivateRequest.getDocumentId(),
-                sharePrivateRequest.getShareToEmail(),
-                sharePrivateRequest.getPermissionRole()
-        );
+    public SharePrivateResponse createSharePrivate(String userId, SharePrivateRequest request) {
+        return null;
     }
 }
 

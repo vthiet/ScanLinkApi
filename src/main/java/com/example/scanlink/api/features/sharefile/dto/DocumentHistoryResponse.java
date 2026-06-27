@@ -7,12 +7,11 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
-
+@Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record DocumentHistoryResponse (
-     String documentId,
-     String title,
-     String storageUrl,
-     LocalDateTime createdAt,
-     PermissionRole permissionRole,
-     Visibility visibility){}
+         String id,
+         String title,
+         String storageUrl,   // generate từ publicId
+         long fileSize,
+         LocalDateTime createdAt){}

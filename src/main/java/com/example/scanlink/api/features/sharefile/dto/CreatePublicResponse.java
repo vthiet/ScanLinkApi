@@ -9,10 +9,10 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class SharePublicResponse {
-    String hasToken;
+public class CreatePublicResponse {
+    String hashToken;
     String documentId;
-    LocalDateTime expiryDate;
+    LocalDateTime expiresAt;
     boolean hasPassword;
     String shareUrl;
 }
