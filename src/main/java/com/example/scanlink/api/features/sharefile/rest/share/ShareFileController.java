@@ -24,7 +24,7 @@ public class ShareFileController {
     }
 
     @PostMapping("/private")
-    public ApiResponse<?> getPrivateShares(Authentication authentication, SharePrivateRequest sharePrivateRequest) {
+    public ApiResponse<?> createPrivateLink(Authentication authentication, SharePrivateRequest sharePrivateRequest) {
         String userId = (String) authentication.getPrincipal();
         SharePrivateResponse res = sharedLinkService.createSharePrivate(userId, sharePrivateRequest);
 

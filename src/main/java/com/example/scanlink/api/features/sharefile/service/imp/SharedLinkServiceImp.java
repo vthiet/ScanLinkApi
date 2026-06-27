@@ -1,23 +1,25 @@
 package com.example.scanlink.api.features.sharefile.service.imp;
 
 import com.example.scanlink.api.features.authentication.entity.UserEntity;
+import com.example.scanlink.api.features.authentication.service.impl.UserServiceImpl;
 import com.example.scanlink.api.features.sharefile.dao.DocumentRepository;
-import com.example.scanlink.api.features.sharefile.dao.SharedLinkRepository;
 import com.example.scanlink.api.features.sharefile.dto.*;
+import com.example.scanlink.api.features.sharefile.model.DocumentPermission;
 import com.example.scanlink.api.features.sharefile.model.SharedLink;
+import com.example.scanlink.api.features.sharefile.model.enums.PermissionRole;
 import com.example.scanlink.api.features.sharefile.service.interfaces.CloudinaryService;
 import com.example.scanlink.api.handler.AppException;
 import com.example.scanlink.api.handler.ErrorCode;
 import com.example.scanlink.api.features.sharefile.model.Document;
-import com.example.scanlink.api.features.sharefile.model.DocumentPermission;
 import com.example.scanlink.api.features.sharefile.service.interfaces.SharedLinkService;
 import lombok.RequiredArgsConstructor;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,70 +32,103 @@ public class SharedLinkServiceImp implements SharedLinkService {
     private final PasswordEncoder passwordEncoder;
     private final CloudinaryService cloudinaryService;
     private final MongoTemplate mongoTemplate;
+    private final UserServiceImpl userService;
 
+    // permission userUUID sẽ là NULL
+    // quyền mặc định là View
     @Override
     public CreatePublicResponse createSharePublic(String userId, CreatePublicRequest request) {
-
-        Document docs = documentRepository.findById(request.getDocumentId())
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
-
+        Document docs = documentRepository.findById(request.getDocumentId()).orElseThrow(()-> new AppException(ErrorCode.NOT_FOUND));
         if (!docs.getOwnerUid().equals(userId)) {
             throw new AppException(ErrorCode.FORBIDDEN);
         }
+        SharedLink sharedLink = new SharedLink();
+        sharedLink.setHashToken(UUID.randomUUID().toString());
+        sharedLink.setExpiresAt(LocalDateTime.now().plusDays(request.getExpireInDays()));
+        sharedLink.setCreatedAt(LocalDateTime.now());
 
-        List<SharedLink> links = docs.getSharedLinks();
-        if (links == null) links = new ArrayList<>();
-
-        SharedLink fileshare = links.stream()
-                .filter(l -> l.getShareWithUserId() == null)
-                .findFirst()
-                .orElse(null);
-
-        if (fileshare == null) {
-            fileshare = SharedLink.builder()
-                    .hashToken(UUID.randomUUID().toString())
-                    .createdAt(LocalDateTime.now())
-                    .build();
-            links.add(fileshare);
+        if(request.getPassword() != null){
+           String pass= passwordEncoder.encode(request.getPassword());
+           sharedLink.setPasswordHash(pass);
+           sharedLink.setHasPassword(true);
+        }else{
+            sharedLink.setHasPassword(false);
         }
 
-        String rawPassword = request.getPassword();
-        if (rawPassword != null && !rawPassword.isBlank()) {
-            fileshare.setHasPassword(true);
-            fileshare.setPasswordHash(passwordEncoder.encode(rawPassword));
-        } else {
-            fileshare.setHasPassword(false);
-            fileshare.setPasswordHash(null);
-        }
+        DocumentPermission permissionRole = new DocumentPermission();
+        permissionRole.setRole(PermissionRole.VIEW);
+        permissionRole.setUser_uid(null);
 
-        fileshare.setExpiresAt(LocalDateTime.now().plusDays(request.getExpireInDays()));
-
-        String shareUrl;
+        addSharedLink(request.getDocumentId(), sharedLink);
+        addDocumentPermissionRole(request.getDocumentId(), permissionRole);
+        String urlPublic =null;
+        documentRepository.save(docs);
         try {
-            shareUrl = cloudinaryService.generateDownloadUrlSecure(
-                    docs.getCloudinaryPublicId(),
-                    docs.getResourceType(),
-                    request.getExpireInDays()
-            );
-        } catch (Exception e) {
+             urlPublic = cloudinaryService.generateDownloadUrlSecure(docs.getCloudinaryPublicId(),docs.getResourceType(),request.getExpireInDays());
+        }catch (Exception e){
             throw new AppException(ErrorCode.INTERNAL_ERROR);
         }
-
-        docs.setSharedLinks(links);
-        documentRepository.save(docs);
+        sharedLink.setShareUrl(urlPublic);
 
         CreatePublicResponse res = new CreatePublicResponse();
-        res.setHashToken(fileshare.getHashToken());
-        res.setDocumentId(request.getDocumentId());
-        res.setExpiresAt(fileshare.getExpiresAt());
-        res.setHasPassword(fileshare.isHasPassword());
-        res.setShareUrl(shareUrl);
+        res.setHashToken(sharedLink.getHashToken());
+        res.setDocumentId(docs.getId());
+        res.setExpiresAt(sharedLink.getExpiresAt());
+        res.setShareUrl(urlPublic);
         return res;
     }
 
     @Override
     public SharePrivateResponse createSharePrivate(String userId, SharePrivateRequest request) {
-        return null;
+        // tìm document
+        Document docs = documentRepository.findById(request.getDocumentId()).orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+        if (!docs.getOwnerUid().equals(userId)) {
+            throw new AppException(ErrorCode.FORBIDDEN);
+        }
+        SharedLink sharedLink = new SharedLink();
+        sharedLink.setHashToken(UUID.randomUUID().toString());
+        sharedLink.setCreatedAt(LocalDateTime.now());
+        sharedLink.setExpiresAt(null);
+        sharedLink.setHasPassword(false);
+
+
+        DocumentPermission permissionRole = new DocumentPermission();
+        permissionRole.setRole(request.getPermissionRole());
+
+        // ko tìm thấy user ? user == null ?
+        UserEntity user =userService.findByEmail(request.getShareToEmail());
+        System.out.println("user: " + user); // null hay có data?
+
+        if(user == null){
+            throw new AppException(ErrorCode.NOT_FOUND);
+        }
+        permissionRole.setUser_uid(user.getUid());
+
+        addSharedLink(request.getDocumentId(), sharedLink);
+        addDocumentPermissionRole(request.getDocumentId(), permissionRole);
+
+
+        SharePrivateResponse res = new SharePrivateResponse();
+        res.setDocumentId(request.getDocumentId());
+        res.setCollaboratorEmail(request.getShareToEmail());
+        res.setPermissionRole(request.getPermissionRole());
+        return res;
+    }
+
+    @Override
+    public void addSharedLink(String documentId, SharedLink sharedLink) {
+        Query query = Query.query(Criteria.where("_id").is(documentId));
+
+        Update update = new Update().push("sharedLinks", sharedLink);
+        mongoTemplate.updateFirst(query,update,Document.class);
+    }
+
+    @Override
+    public void addDocumentPermissionRole(String userId, DocumentPermission documentPermission) {
+        Query query = Query.query(Criteria.where("ownerUid").is(userId));
+
+        Update update = new Update().push("DOCUMENT_PERMiSSION", documentPermission);
+        mongoTemplate.updateFirst(query,update,Document.class);
     }
 }
 

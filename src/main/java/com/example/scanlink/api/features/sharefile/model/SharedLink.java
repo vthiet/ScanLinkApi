@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -20,10 +21,9 @@ import java.time.LocalDateTime;
 public class SharedLink {
     @Id
    private String hashToken;
-   @Indexed
-   private String shareWithUserId;
    private String passwordHash;
    private LocalDateTime expiresAt;
    private LocalDateTime createdAt;
-    private boolean hasPassword;
+   private boolean hasPassword;
+   private String shareUrl;
 }
