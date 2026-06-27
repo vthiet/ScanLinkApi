@@ -11,4 +11,5 @@ public interface SharedLinkService {
     SharePrivateResponse createSharePrivate(String userId, SharePrivateRequest sharePrivateRequest);
     void addSharedLink(String documentId, SharedLink sharedLink);
     void addDocumentPermissionRole(String userId, DocumentPermission documentPermission);
+    DocumentResponse accessPublicLink(String hashtoken, String password);
 }

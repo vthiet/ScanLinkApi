@@ -130,5 +130,56 @@ public class SharedLinkServiceImp implements SharedLinkService {
         Update update = new Update().push("DOCUMENT_PERMiSSION", documentPermission);
         mongoTemplate.updateFirst(query,update,Document.class);
     }
+
+    @Override
+    public DocumentResponse accessPublicLink(String hashToken, String password) {
+
+        // 1. Tìm Document chứa hashToken này
+        Document docs = documentRepository.findBySharedLinksHashToken(hashToken)
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+
+        // 2. Tìm đúng SharedLink trong list
+        SharedLink sharedLink = docs.getSharedLinks().stream()
+                .filter(l -> hashToken.equals(l.getHashToken()))
+                .findFirst()
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+
+        // 3. Kiểm tra hết hạn
+        if (sharedLink.getExpiresAt() != null &&
+                sharedLink.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new AppException(ErrorCode.EXPIRED);
+        }
+
+        // 4. Kiểm tra password nếu có
+        if (sharedLink.isHasPassword()) {
+            if (password == null || password.isBlank()) {
+                throw new AppException(ErrorCode.UNAUTHORIZED); // chưa nhập password
+            }
+            if (!passwordEncoder.matches(password, sharedLink.getPasswordHash())) {
+                throw new AppException(ErrorCode.UNAUTHORIZED); // sai password
+            }
+        }
+
+        // 5. Generate URL để truy cập file
+        String fileUrl;
+        try {
+            fileUrl = cloudinaryService.generateDownloadUrlSecure(
+                    docs.getCloudinaryPublicId(),
+                    docs.getResourceType(),
+                    1 // 1 ngày
+            );
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.INTERNAL_ERROR);
+        }
+
+        // 6. Build response
+        DocumentResponse res = new DocumentResponse();
+        res.setId(docs.getId());
+        res.setTitle(docs.getTitle());
+        res.setStorageUrl(fileUrl);
+        res.setFileSize(docs.getFileSize());
+        res.setCreatedAt(docs.getCreatedAt());
+        return res;
+    }
 }
 

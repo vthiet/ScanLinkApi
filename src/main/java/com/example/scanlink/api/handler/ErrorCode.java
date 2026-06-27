@@ -8,7 +8,8 @@ public enum ErrorCode {
     FORBIDDEN("FORBIDDEN", "Không có quyền truy cập"),
     UNAUTHORIZED("UNAUTHORIZED", "Chưa xác thực"),
     BAD_REQUEST("BAD_REQUEST", "Dữ liệu không hợp lệ"),
-    INTERNAL_ERROR("INTERNAL_ERROR", "Lỗi hệ thống");
+    INTERNAL_ERROR("INTERNAL_ERROR", "Lỗi hệ thống"),
+    EXPIRED("Expire"," đường dẫn chia sẻ đã hết hạn");
 
     private final String status;
     private final String message;

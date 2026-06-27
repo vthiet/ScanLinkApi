@@ -18,5 +18,5 @@ public interface DocumentRepository extends MongoRepository<Document,String> {
     List<Document> findByTitleContainingIgnoreCaseOrderByCreatedAtDesc(String title);
     Optional<Document> findByIdAndOwnerUid(String id, String ownerUid);
     Page<Document> findByOwnerUidAndIsDeletedFalse(String ownerUid, Pageable pageable);
-
+    Optional<Document> findBySharedLinksHashToken(String hashToken);
 }
