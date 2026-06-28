@@ -1,25 +1,22 @@
 package com.example.scanlink.api.handler;
 
-public enum ErrorCode {
-    NOT_FOUND(404, "Không tìm thấy tài liệu yêu cầu chia sẻ"),
-    FORBIDDEN(403, "Không có quyền truy cập"),
-    UNAUTHORIZED(401, "Chưa xác thực"),
-    BAD_REQUEST(400, "Dữ liệu không hợp lệ"),
-    INTERNAL_ERROR(500, "Lỗi hệ thống");
+import lombok.Getter;
 
-    private final int code;
+@Getter
+public enum ErrorCode {
+    NOT_FOUND("Not Found", "Không tìm thấy tài liệu yêu cầu chia sẻ"),
+    FORBIDDEN("FORBIDDEN", "Không có quyền truy cập"),
+    UNAUTHORIZED("UNAUTHORIZED", "Chưa xác thực"),
+    BAD_REQUEST("BAD_REQUEST", "Dữ liệu không hợp lệ"),
+    INTERNAL_ERROR("INTERNAL_ERROR", "Lỗi hệ thống"),
+    EXPIRED("Expire"," đường dẫn chia sẻ đã hết hạn");
+
+    private final String status;
     private final String message;
 
-    ErrorCode(int code, String message) {
-        this.code = code;
+    ErrorCode(String status, String message) {
+        this.status = status;
         this.message = message;
     }
 
-    public int getCode() {
-        return code;
-    }
-
-    public String getMessage() {
-        return message;
-    }
 }

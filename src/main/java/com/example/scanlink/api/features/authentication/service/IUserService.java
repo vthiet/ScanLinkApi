@@ -9,4 +9,5 @@ public interface IUserService {
     Optional<UserEntity> findById(String uid);
 
     UserEntity save(UserEntity userEntity);
+    UserEntity findByEmail(String email);
 }

@@ -1,16 +1,19 @@
 package com.example.scanlink.api.features.sharefile.model;
 
 import com.example.scanlink.api.features.sharefile.model.enums.PermissionRole;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
-@Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,14 +21,9 @@ import java.time.LocalDateTime;
 public class SharedLink {
     @Id
    private String hashToken;
-
-    @Indexed
-   private String documentId;
-
-   @Indexed
-   private String shareWithUserId;
-   private PermissionRole role;
+   private String passwordHash;
+   private LocalDateTime expiresAt;
+   private LocalDateTime createdAt;
    private boolean hasPassword;
-   private LocalDateTime expiryDate;
-   private LocalDateTime shareAt;
+   private String shareUrl;
 }

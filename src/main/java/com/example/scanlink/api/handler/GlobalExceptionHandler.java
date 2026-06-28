@@ -10,7 +10,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AppException.class)
     public ResponseEntity<ApiResponse> handleAppException(AppException ex){
         ErrorCode errorCode = ex.getErrorCode();
-        ApiResponse apiResponse = new ApiResponse(String.valueOf(errorCode.getCode()), errorCode.getMessage());
+        ApiResponse apiResponse = new ApiResponse(errorCode.getStatus(), errorCode.getMessage());
 
         return ResponseEntity.badRequest().body(apiResponse);
     }

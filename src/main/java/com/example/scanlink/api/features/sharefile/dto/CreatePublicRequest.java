@@ -1,14 +1,16 @@
 package com.example.scanlink.api.features.sharefile.dto;
 
 import com.example.scanlink.api.features.sharefile.model.enums.PermissionRole;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.*;
 
-@Data
 @AllArgsConstructor
-public class SharePublicRequest {
+@NoArgsConstructor
+@Getter
+@Setter
+public class CreatePublicRequest {
     String documentId;
     String password;
     int expireInDays;
-    PermissionRole permissionRole;
+
 }
