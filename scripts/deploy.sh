@@ -119,7 +119,18 @@ ok "Repository up to date"
 log "[2/5] Syncing deployment config files..."
 cp "$ENV_FILE"      "$PROJECT_DIR/.env"
 cp "$FIREBASE_FILE" "$PROJECT_DIR/src/main/resources/scanlink-firebase-service-account.json"
-ok "Config files synced"
+
+# Đảm bảo ENV_FIREBASE_PATH luôn trỏ đúng path trong Docker container
+# (Spring Boot đọc biến này để load Firebase service account)
+FIREBASE_CONTAINER_PATH="/app/scanlink-firebase-service-account.json"
+if grep -qE "^ENV_FIREBASE_PATH=" "$PROJECT_DIR/.env" 2>/dev/null; then
+  # Cập nhật giá trị nếu đã có
+  sed -i "s|^ENV_FIREBASE_PATH=.*|ENV_FIREBASE_PATH=$FIREBASE_CONTAINER_PATH|" "$PROJECT_DIR/.env"
+else
+  # Thêm mới nếu chưa có
+  echo "ENV_FIREBASE_PATH=$FIREBASE_CONTAINER_PATH" >> "$PROJECT_DIR/.env"
+fi
+ok "Config files synced (ENV_FIREBASE_PATH=$FIREBASE_CONTAINER_PATH)"
 
 # --- 7. Remove stale standalone containers ---
 log "[3/5] Removing stale containers (if any)..."
