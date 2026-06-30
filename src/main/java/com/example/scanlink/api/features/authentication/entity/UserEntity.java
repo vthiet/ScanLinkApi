@@ -25,8 +25,16 @@ public class UserEntity {
     private String dateOfBirth;
     private String gender;
 
+    // 2 thuộc tính cho Admin API
+    private long storageUsed;
+    private long storageLimit;
+    private String providerId;
+
     @CreatedDate
     private LocalDateTime createdAt;
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    private LocalDateTime lastLoginAt;
+
 }

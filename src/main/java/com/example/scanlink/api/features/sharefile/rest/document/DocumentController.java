@@ -9,13 +9,11 @@ import com.example.scanlink.api.features.sharefile.service.interfaces.DocumentSe
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.core.Authentication;
 
 import java.io.IOException;
-import java.util.List;
 
 
 @RequiredArgsConstructor

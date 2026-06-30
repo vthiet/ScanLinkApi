@@ -14,7 +14,7 @@ public class ShareFileController {
     private final SharedLinkService sharedLinkService;
 
     @PostMapping("/public")
-    public ApiResponse<?> createPublicLink(Authentication authentication, CreatePublicRequest createPublicRequest) {
+    public ApiResponse<?> createPublicLink(Authentication authentication,@RequestBody CreatePublicRequest createPublicRequest) {
         String userId = (String) authentication.getPrincipal();
         CreatePublicResponse res = sharedLinkService.createSharePublic(userId, createPublicRequest);
         return ApiResponse.success(res);
@@ -27,7 +27,7 @@ public class ShareFileController {
     }
 
     @PostMapping("/private")
-    public ApiResponse<?> createPrivateLink(Authentication authentication, SharePrivateRequest sharePrivateRequest) {
+    public ApiResponse<?> createPrivateLink(Authentication authentication, @RequestBody SharePrivateRequest sharePrivateRequest) {
         String userId = (String) authentication.getPrincipal();
         SharePrivateResponse res = sharedLinkService.createSharePrivate(userId, sharePrivateRequest);
         return ApiResponse.success(res);
