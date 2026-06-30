@@ -3,6 +3,8 @@ package com.example.scanlink.api.features.authentication.service.impl;
 import com.example.scanlink.api.features.authentication.entity.UserEntity;
 import com.example.scanlink.api.features.authentication.repository.IUserRepository;
 import com.example.scanlink.api.features.authentication.service.IUserService;
+import com.example.scanlink.api.handler.AppException;
+import com.example.scanlink.api.handler.ErrorCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
