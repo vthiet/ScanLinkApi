@@ -1,18 +1,14 @@
-package com.example.scanlink.api.features.sharefile.model;
+package com.example.scanlink.api.features.sharefile.dto.admin;
 
-
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.mongodb.core.mapping.Field;
 
-@Getter
 @Setter
-@Data
-public class ChartAggregationResult {
-
+@Getter
+public class ProviderDistributionResult {
     @Field("_id")
-    private String date;
+    private String provider;
 
     private Long count;
 }

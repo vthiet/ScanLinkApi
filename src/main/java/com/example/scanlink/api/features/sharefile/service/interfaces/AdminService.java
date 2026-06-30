@@ -6,11 +6,11 @@ import org.springframework.data.domain.Page;
 
 public interface AdminService {
     DashboardStatsResponse getDashboardStats(String userId);
-    DashboardChartResponse getDashboardCharts(String userId,Integer days);
+    DashboardChartResponse getDashboardCharts(String userId,int days);
     PageResponse<UserAdminResponse> getUsers(String userId,int page, int size, String search, Boolean isActive);
 
-    UserStatusUpdatedResponse updateActiveUser(String userId,String uid, Boolean isActive);
-    UserQuotaUpdatedResponse updateQuota(String userId,String uid, Long quota);
+    UserStatusUpdatedResponse updateActiveUser(String userId,String uid, UpdateUserStatusRequest request);
+    UserQuotaUpdatedResponse updateQuota(String userId,String uid, UpdateQuotaRequest quota);
 
     PageResponse<DocumentAdminResponse> getDocumentAdmins(String userId,int page, int size, String search, String ownerUid);
     void deleteDocumentAdmin(String userId,String id);

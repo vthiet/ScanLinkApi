@@ -16,12 +16,14 @@ import org.springframework.web.bind.annotation.*;
 public class AdminController {
     private final AdminService adminService;
 
+    // OK
     @GetMapping("/dashboard/stats")
     public ApiResponse<DashboardStatsResponse> getDashboardStats(Authentication authentication) {
         DashboardStatsResponse dashboardStatsResponse = adminService.getDashboardStats((String) authentication.getPrincipal());
         return ApiResponse.success(dashboardStatsResponse);
     }
 
+    // OK
     @GetMapping("/dashboard/charts")
     public ApiResponse<DashboardChartResponse> getDashboardCharts(Authentication authentication,
             @RequestParam(defaultValue = "30") int days) {
@@ -30,7 +32,7 @@ public class AdminController {
     }
 
     // ---------- 5.2 User Administration ----------
-
+    // OK
     @GetMapping("/users")
     public ApiResponse<PageResponse<UserAdminResponse>> getUsers(Authentication authentication,
             @RequestParam(defaultValue = "0") int page,
@@ -40,17 +42,19 @@ public class AdminController {
         return ApiResponse.success(adminService.getUsers((String) authentication.getPrincipal(),page, size, search, isActive));
     }
 
-
+    // OK
     @PutMapping("/users/{uid}/status")
-    public ApiResponse<UserStatusUpdatedResponse> updateUserStatus(Authentication authentication,@PathVariable String uid, @RequestBody Boolean isActive) {
-        return ApiResponse.success( adminService.updateActiveUser((String) authentication.getPrincipal(),uid,isActive));
+    public ApiResponse<UserStatusUpdatedResponse> updateUserStatus(Authentication authentication,@PathVariable String uid, @RequestBody UpdateUserStatusRequest request) {
+        return ApiResponse.success( adminService.updateActiveUser((String) authentication.getPrincipal(),uid,request));
     }
 
+    // OK
     @PutMapping("/users/{uid}/quota")
-    public ApiResponse<UserQuotaUpdatedResponse> updateUserQuota(Authentication authentication,@PathVariable String uid, @RequestBody Long quota) {
+    public ApiResponse<UserQuotaUpdatedResponse> updateUserQuota(Authentication authentication,@PathVariable String uid, @RequestBody UpdateQuotaRequest quota) {
         return ApiResponse.success(adminService.updateQuota( (String)authentication.getPrincipal(),uid,quota));
     }
 
+    // OK
     @GetMapping("/documents")
     public ApiResponse<PageResponse<DocumentAdminResponse>> getDocuments(Authentication authentication,
             @RequestParam(defaultValue = "0") int page,
@@ -60,6 +64,7 @@ public class AdminController {
         return ApiResponse.success(adminService.getDocumentAdmins((String) authentication.getPrincipal(),page, size, search, ownerUid));
     }
 
+    // OK
     @DeleteMapping("/documents/{id}")
     public ApiResponse<Void> forceDeleteDocument(Authentication authentication,@PathVariable String id) {
         adminService.deleteDocumentAdmin((String) authentication.getPrincipal(),id);

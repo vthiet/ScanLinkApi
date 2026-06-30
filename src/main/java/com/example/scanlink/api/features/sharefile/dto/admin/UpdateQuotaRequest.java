@@ -2,15 +2,13 @@ package com.example.scanlink.api.features.sharefile.dto.admin;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
-@Getter
 @Setter
+@Getter
 @AllArgsConstructor
-public class UserStatusUpdatedResponse {
-    private String uid;
-    private boolean isActive;
-    private LocalDateTime updatedAt;
+@NoArgsConstructor
+public class UpdateQuotaRequest {
+    private Long quota;
 }
