@@ -17,7 +17,7 @@ set -euo pipefail
 
 # --- Cấu hình mặc định ---
 REPO_URL="https://github.com/vthiet/ScanLinkApi.git"
-BRANCH="${BRANCH:-feat/auth}"
+BRANCH="${BRANCH:-main}"
 DEPLOY_BASE="${DEPLOY_BASE:-$HOME/deploy}"
 PROJECT_DIR="$DEPLOY_BASE/ScanLinkApi"
 
