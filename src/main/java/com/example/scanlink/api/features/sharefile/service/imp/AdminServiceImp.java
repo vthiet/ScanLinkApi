@@ -6,18 +6,19 @@ import com.example.scanlink.api.features.sharefile.dao.DocumentRepository;
 import com.example.scanlink.api.features.sharefile.dto.PageResponse;
 import com.example.scanlink.api.features.sharefile.dto.admin.*;
 import com.example.scanlink.api.features.sharefile.model.ChartAggregationResult;
+import com.example.scanlink.api.features.sharefile.model.Document;
 import com.example.scanlink.api.features.sharefile.service.interfaces.AdminService;
 import com.example.scanlink.api.features.sharefile.service.interfaces.StorageResult;
 import com.example.scanlink.api.handler.AppException;
 import com.example.scanlink.api.handler.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.bson.Document;
 import org.springframework.data.domain.*;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
+import org.springframework.data.mongodb.core.aggregation.DateOperators;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -40,10 +41,7 @@ public class AdminServiceImp implements AdminService {
 
         StorageResult result = documentRepository.sumStorageUsedBytes();
 
-        long totalStorage =
-                result == null || result.getTotalStorage() == null
-                        ? 0
-                        : result.getTotalStorage();
+        long totalStorage = result == null || result.getTotalStorage() == null ? 0 : result.getTotalStorage();
 
         long activeUsers = userRepository.countByLastLoginAtAfter(
                 LocalDateTime.now().minusDays(30)
@@ -59,7 +57,7 @@ public class AdminServiceImp implements AdminService {
     }
 
     @Override
-    public DashboardChartResponse getDashboardCharts(String userId,Integer days) {
+    public DashboardChartResponse getDashboardCharts(String userId,int days) {
         checkAdmin(userId);
         return DashboardChartResponse.builder()
                 .registrationChart(getRegistrationChart(days))
@@ -124,27 +122,25 @@ public class AdminServiceImp implements AdminService {
     }
 
     @Override
-    public UserStatusUpdatedResponse updateActiveUser(String userId,String uid, Boolean isActive) {
+    public UserStatusUpdatedResponse updateActiveUser(String userId,String uid, UpdateUserStatusRequest request) {
         checkAdmin(userId);
         if (uid == null) throw new AppException(ErrorCode.NOT_FOUND);
         UserEntity user = userRepository.findByUid(uid);
         if (user == null) throw new AppException(ErrorCode.NOT_FOUND);
-        user.setActive(isActive);
+        user.setActive(request.getIsActive());
         userRepository.save(user);
         return new UserStatusUpdatedResponse(user.getUid(), user.isActive(), LocalDateTime.now());
     }
 
     @Override
-    public UserQuotaUpdatedResponse updateQuota(String userId,String uid, Long quota) {
+    public UserQuotaUpdatedResponse updateQuota(String userId,String uid, UpdateQuotaRequest quota) {
         checkAdmin(userId);
         UserEntity user = userRepository.findById(uid)
                 .orElseThrow(() ->
                         new AppException(ErrorCode.NOT_FOUND));
 
-        user.setStorageLimit(quota);
-
+        user.setStorageLimit(quota.getQuota());
         user.setUpdatedAt(LocalDateTime.now());
-
         userRepository.save(user);
 
         return UserQuotaUpdatedResponse.builder()
@@ -232,22 +228,31 @@ public class AdminServiceImp implements AdminService {
 
         LocalDateTime from = LocalDateTime.now().minusDays(days);
 
-        MatchOperation match = Aggregation.match(Criteria.where("createdAt").gte(from));
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.match(
+                        Criteria.where("createdAt").gte(from)
+                ),
+                Aggregation.project()
+                        .and(DateOperators.DateToString.dateOf("createdAt").toString("%Y-%m-%d"))
+                        .as("date"),
+                Aggregation.group("date")
+                        .count()
+                        .as("count"),
+                Aggregation.sort(Sort.by(Sort.Direction.ASC, "_id"))
+        );
 
-        ProjectionOperation project = Aggregation.project().andExpression("dateToString('%Y-%m-%d', createdAt)").as("date");
+        AggregationResults<ChartAggregationResult> results =
+                mongoTemplate.aggregate(
+                        aggregation,
+                        UserEntity.class,
+                        ChartAggregationResult.class
+                );
 
-        GroupOperation group = Aggregation.group("date").count().as("count");
-
-        SortOperation sort = Aggregation.sort(Sort.by("_id"));
-
-        Aggregation aggregation = Aggregation.newAggregation(match, project, group, sort);
-
-        AggregationResults<Document> results = mongoTemplate.aggregate(aggregation, UserEntity.class, Document.class);
-
-        return results.getMappedResults().stream()
-                .map(doc -> new ChartPoint(
-                        doc.getString("_id"),
-                        doc.getLong("count")
+        return results.getMappedResults()
+                .stream()
+                .map(item -> new ChartPoint(
+                        item.getDate(),
+                        item.getCount()
                 ))
                 .toList();
     }
@@ -262,7 +267,7 @@ public class AdminServiceImp implements AdminService {
                                 .and("isDeleted").is(false)
                 ),
                 Aggregation.project()
-                        .andExpression("dateToString('%Y-%m-%d', createdAt)")
+                        .and(DateOperators.DateToString.dateOf("createdAt").toString("%Y-%m-%d"))
                         .as("date"),
                 Aggregation.group("date")
                         .count()
@@ -273,8 +278,8 @@ public class AdminServiceImp implements AdminService {
         AggregationResults<ChartAggregationResult> results =
                 mongoTemplate.aggregate(
                         aggregation,
-                        Document.class,              // Collection DOCUMENTS
-                        ChartAggregationResult.class // Kết quả aggregation
+                        Document.class,
+                        ChartAggregationResult.class
                 );
 
         return results.getMappedResults()
@@ -288,24 +293,29 @@ public class AdminServiceImp implements AdminService {
 
     private Map<String, Long> getProviderDistribution() {
 
-        Aggregation aggregation =
-                Aggregation.newAggregation(Aggregation.group("provider")
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.group("provider")
                         .count()
                         .as("count")
+        );
+
+        AggregationResults<ProviderDistributionResult> results =
+                mongoTemplate.aggregate(
+                        aggregation,
+                        UserEntity.class,
+                        ProviderDistributionResult.class
                 );
-        AggregationResults<Document> results = mongoTemplate.aggregate(aggregation, UserEntity.class, Document.class);
 
-        Map<String, Long> map = new LinkedHashMap<>();
-        for (Document doc : results.getMappedResults()) {
-            map.put(
-                    doc.getString("_id"),
-                    doc.getLong("count")
-            );
-        }
-        return map;
-
+        return results.getMappedResults()
+                .stream()
+                .filter(item -> item.getProvider() != null)
+                .collect(Collectors.toMap(
+                        ProviderDistributionResult::getProvider,
+                        ProviderDistributionResult::getCount,
+                        (a, b) -> a,
+                        LinkedHashMap::new
+                ));
     }
-
 
 }
 
