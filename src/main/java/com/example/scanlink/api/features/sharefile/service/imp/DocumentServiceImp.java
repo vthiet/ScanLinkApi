@@ -119,9 +119,7 @@ public class DocumentServiceImp implements DocumentService {
                 .map(file -> DocumentHistoryResponse.builder()
                         .id(file.getId())
                         .title(file.getTitle())
-                        .storageUrl(cloudinaryService.generateDownloadUrl(
-                                file.getCloudinaryPublicId(),
-                                file.getResourceType()))
+                        .storageUrl(file.getStorageUrl())
                         .fileSize(file.getFileSize())
                         .createdAt(file.getCreatedAt())
                         .build());
