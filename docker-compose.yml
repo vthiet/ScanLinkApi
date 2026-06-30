@@ -2,23 +2,45 @@ services:
 
   scanlink-api:
     build:
-      context: ./ScanLinkApi
+      context: .
+      dockerfile: Dockerfile
     container_name: scanlink-api
     restart: unless-stopped
     expose:
       - "8080"
+    env_file:
+      - .env
     volumes:
-      - ./ScanLinkApi/src/main/resources/scanlink-firebase-service-account.json:/app/scanlink-firebase-service-account.json:ro
-    environment:
-      - FIREBASE_SERVICE_ACCOUNT_PATH=/app/scanlink-firebase-service-account.json
+      # Firebase service account (sensitive - never baked into image)
+      - ./src/main/resources/scanlink-firebase-service-account.json:/app/scanlink-firebase-service-account.json:ro
+    networks:
+      - scanlink-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    depends_on: []
 
   nginx:
-    image: nginx:stable
-    container_name: nginx
+    image: nginx:stable-alpine
+    container_name: scanlink-nginx
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      # SSL certs: mount từ ~/deploy/ssl/ trên host
+      # setup-ssl.sh sẽ tạo file này tự động
+      - ${SSL_DIR:-/root/deploy/ssl}:/etc/nginx/ssl:ro
     depends_on:
-      - scanlink-api
+      scanlink-api:
+        condition: service_started
+    networks:
+      - scanlink-net
     restart: unless-stopped
+
+networks:
+  scanlink-net:
+    driver: bridge
