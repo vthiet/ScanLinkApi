@@ -1,17 +1,32 @@
+# Git metadata
 .git
 .github
+.gitattributes
+
+# IDE files
 .idea
 .vscode
-
-target
-
-*.log
 *.iml
+*.ipr
+*.iws
 
-README.md
+# Build output (don't copy, will be built inside container)
+target/
 
+# Logs
+*.log
+
+# Environment & Secrets (NEVER bake into image)
 .env
 .env.*
-
-firebase-service-account.json
+scanlink-firebase-service-account.json
 src/main/resources/scanlink-firebase-service-account.json
+google-services.json
+
+# Docs
+README.md
+docs/
+
+# Local deploy scripts (not needed in image)
+scripts/deploy.sh
+scripts/deploy-local.sh
