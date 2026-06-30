@@ -32,10 +32,15 @@ build/
 ### VS Code ###
 .vscode/
 
-### Configuration files ###
+### Configuration files (secrets - NEVER commit) ###
 application.properties
 application.yaml
 
+# Firebase
 src/main/resources/scanlink-firebase-service-account.json
 google-services.json
+
+# Environment variables
 .env
+.env.*
+!.env.example

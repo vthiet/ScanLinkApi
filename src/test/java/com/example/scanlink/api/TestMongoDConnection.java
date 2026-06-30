@@ -13,7 +13,13 @@ public class TestMongoDConnection {
 
     @Test
     void testRawConnection() {
-        String connectionString = "mongodb+srv://<db_username>:<db_password>@scanlink.pkullw8.mongodb.net/?appName=ScanLink";
+        String connectionString = System.getenv("MONGODB_URI");
+        if (connectionString == null || connectionString.isEmpty() || connectionString.contains("<db_username>")) {
+            connectionString = System.getProperty("MONGODB_URI");
+        }
+        if (connectionString == null || connectionString.isEmpty() || connectionString.contains("<db_username>")) {
+            connectionString = "mongodb+srv://scanlink115:Wm70OzzvPCTlAAH0@scanlink.pkullw8.mongodb.net/?appName=ScanLink";
+        }
 
         ServerApi serverApi = ServerApi.builder()
                 .version(ServerApiVersion.V1)

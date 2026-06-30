@@ -1,52 +1,93 @@
 package com.example.scanlink.api.features.sharefile.service.imp;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.Transformation;
 import com.cloudinary.utils.ObjectUtils;
 import com.example.scanlink.api.features.sharefile.service.interfaces.CloudinaryService;
+import com.example.scanlink.api.handler.AppException;
+import com.example.scanlink.api.handler.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Map;
 
 
 @Service
 @RequiredArgsConstructor
 public class CloudinaryImp implements CloudinaryService {
-    private final com.cloudinary.Cloudinary cloudinaryClient;
+    private final Cloudinary cloudinary;
 
-    @Override
+    @Value("${scanlink.storage.url_folder_cloudinary}")
+    private String urlFolderCloudinary;
+
+    // Upload any file type (image, video, raw documents)
     public Map uploadFile(MultipartFile file) throws IOException {
-        return cloudinaryClient.uploader().upload(
-                file.getBytes(),
-                ObjectUtils.emptyMap()
-        );
+        String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
+
+        return cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
+                "resource_type", "auto",
+                        "upload_preset","ml_default",
+                        "folder",urlFolderCloudinary,
+                         "filename_override", originalFilename,
+                        "unique_filename",true,
+                        "use_filename",true
+        ));
     }
 
-    @Override
-    public String uploadAndGetUrl(MultipartFile file) throws IOException {
-        Map result = uploadFile(file);
-        return (String) result.get("secure_url");
-    }
-
-    @Override
-    public Map uploadFile(byte[]  fileBytes, String folder) throws IOException {
-        return cloudinaryClient.uploader().upload(
-                fileBytes,
-                ObjectUtils.asMap("folder", folder,"resource_type", "raw")
-        );
-    }
-
-    @Override
-    public void deleteFile(String publicId) throws IOException {
-        cloudinaryClient.uploader().destroy(publicId, ObjectUtils.emptyMap());
-    }
-
-    @Override
-    public String getFileUrl(String publicId) {
-        return cloudinaryClient.url()
+    public String generateDownloadUrl(String publicId, String resourceType) {
+        return cloudinary.url()
                 .secure(true)
+                .resourceType(resourceType)
+                .transformation(new Transformation().flags("attachment"))
                 .generate(publicId);
     }
 
+
+    @Override
+    public byte[] downloadFile(String url) throws IOException {
+
+        URL fileUrl = new URL(url);
+        HttpURLConnection connection = (HttpURLConnection) fileUrl.openConnection();
+        connection.setRequestMethod("GET");
+
+        if (connection.getResponseCode() != 200) {
+            throw new AppException(ErrorCode.BAD_REQUEST);
+        }
+
+        byte[] fileBytes;
+        try (InputStream in = connection.getInputStream()) {
+            fileBytes = in.readAllBytes();
+        } finally {
+            connection.disconnect();
+        }
+
+        return fileBytes;
+    }
+    @Override
+    public void delete(String publicId) throws IOException {
+        cloudinary.uploader().destroy(publicId, ObjectUtils.asMap(
+                "resource_type", "raw",        // mặc định "raw" cho document
+                "invalidate", true             // xóa cache CDN luôn
+        ));
+    }
+    @Override
+    public String generateDownloadUrlSecure(String publicId, String resourceType, int days) throws Exception {
+        long expireAt = System.currentTimeMillis() / 1000L + (days * 24L * 60 * 60);
+
+        return cloudinary.url()
+                .secure(true)
+                .resourceType(resourceType)
+                .type("upload")
+                .signed(true)
+                .transformation(new Transformation().flags("attachment"))
+                .generate(publicId);
+    }
 }

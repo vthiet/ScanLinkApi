@@ -4,13 +4,13 @@ import com.example.scanlink.api.features.sharefile.model.enums.PermissionRole;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-public class SharePrivateResponse {
+public class CreatePublicRequest {
     String documentId;
-    String collaboratorEmail;
-    PermissionRole permissionRole;
+    String password;
+    int expireInDays;
+
 }

@@ -1,13 +1,13 @@
 package com.example.scanlink.api.features.sharefile.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
-@Data
-public class UploadFileRequest {
-    private String userId;
-    private String fileName;
-    private Long size;
-    private String fileUrl;
-    private String cloudinaryPublicId;
-    private String type;
-}
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record UploadFileRequest (
+     String userId,
+     String fileName,
+     Long size,
+     String fileUrl,
+     String cloudinaryPublicId,
+     String type){}

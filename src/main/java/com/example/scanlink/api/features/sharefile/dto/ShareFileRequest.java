@@ -2,10 +2,15 @@ package com.example.scanlink.api.features.sharefile.dto;
 
 import com.example.scanlink.api.features.sharefile.model.enums.PermissionRole;
 import com.example.scanlink.api.features.sharefile.model.enums.Visibility;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.*;
 
 
-@Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class ShareFileRequest {
     private String fileId;
     private String ownerUserId;

@@ -7,20 +7,19 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Map;
+import java.util.List;
 
 @Component
 public class FirebaseAuthenticationFilter extends OncePerRequestFilter {
-    private static final Logger logger = LoggerFactory.getLogger(FirebaseAuthenticationFilter.class);
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -32,22 +31,26 @@ public class FirebaseAuthenticationFilter extends OncePerRequestFilter {
             try {
                 FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(authenticationToken);
                 String uid = decodedToken.getUid();
+                Object roleClaim = decodedToken.getClaims().get("role");
+                String role = (roleClaim != null) ? roleClaim.toString(): "";
+                List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+
+                if (StringUtils.hasText(role)){
+                    authorities.add(new SimpleGrantedAuthority(role.toUpperCase()));
+                } else {
+                    authorities.add(new SimpleGrantedAuthority("USER"));
+                }
 
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(uid, decodedToken, new ArrayList<>());
+                        new UsernamePasswordAuthenticationToken(uid, decodedToken, authorities);
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-
-                logger.debug("Firebase token verified. UID: {}, Provider: {}",
-                        decodedToken.getUid(),
-                        ((Map<?, ?>) decodedToken.getClaims().get("firebase")).get("sign_in_provider"));
 
             } catch (FirebaseAuthException e) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Token is invalid or expired!");
                 return;
             } catch (Exception e) {
-                logger.error("Unexpected error during Firebase token verification: {}", e.getMessage(), e);
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Authentication failed: " + e.getMessage());
                 return;

@@ -1,15 +1,18 @@
 package com.example.scanlink.api.features.sharefile.model;
 
-import lombok.Getter;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @org.springframework.data.mongodb.core.mapping.Document(collection  = "DOCUMENTS")
     public class Document {
     @Id
@@ -32,19 +35,8 @@ import java.util.List;
     private Boolean isDeleted = false;
     private LocalDateTime deletedAt;
 
-    public Document() {
-    }
+    @NonNull
+    private String resourceType;
 
-    public Document(Boolean isDeleted, String id, String title, Long fileSize, String ownerUid, String storageUrl, String extractedText, LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime deletedAt) {
-        this.isDeleted = isDeleted;
-        this.id = id;
-        this.title = title;
-        this.fileSize = fileSize;
-        this.ownerUid = ownerUid;
-        this.storageUrl = storageUrl;
-        this.extractedText = extractedText;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.deletedAt = deletedAt;
-    }
+    private String cloudinaryPublicId;
 }
